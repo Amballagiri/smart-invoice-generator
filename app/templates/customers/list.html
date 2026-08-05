@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Customers · Smart Invoice Generator{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div><h1 class="h2 mb-0">Customers</h1><p class="text-muted mb-0">Manage your customer directory.</p></div>
+  <a class="btn btn-primary" href="{{ url_for('customers.add_customer') }}">Add customer</a>
+</div>
+<div class="card shadow-sm border-0"><div class="card-body">
+  <form class="row g-2 mb-4" method="get">
+    <div class="col-sm"><input class="form-control" name="q" value="{{ search }}" placeholder="Search by name, email, or phone"></div>
+    <div class="col-sm-auto"><button class="btn btn-outline-primary w-100" type="submit">Search</button></div>
+    {% if search %}<div class="col-sm-auto"><a class="btn btn-outline-secondary w-100" href="{{ url_for('customers.list_customers') }}">Clear</a></div>{% endif %}
+  </form>
+  {% if customers.items %}<div class="table-responsive"><table class="table align-middle mb-0">
+    <thead><tr><th>Name</th><th>Contact</th><th>Location</th><th class="text-end">Actions</th></tr></thead>
+    <tbody>{% for customer in customers.items %}<tr>
+      <td class="fw-semibold">{{ customer.name }}</td>
+      <td>{% if customer.email %}<div>{{ customer.email }}</div>{% endif %}{% if customer.phone %}<small class="text-muted">{{ customer.phone }}</small>{% endif %}</td>
+      <td>{{ [customer.city, customer.country]|select|join(', ') or '—' }}</td>
+      <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('customers.edit_customer', customer_id=customer.id) }}">Edit</a>
+        <form class="d-inline" method="post" action="{{ url_for('customers.delete_customer', customer_id=customer.id) }}" onsubmit="return confirm('Delete this customer?');"><button class="btn btn-sm btn-outline-danger" type="submit">Delete</button></form>
+      </td>
+    </tr>{% endfor %}</tbody>
+  </table></div>{% else %}<p class="text-center text-muted py-4 mb-0">No customers found. Add your first customer to get started.</p>{% endif %}
+</div></div>
+{% if customers.pages > 1 %}<nav class="mt-4" aria-label="Customer pages"><ul class="pagination justify-content-center">
+  {% for page_number in customers.iter_pages() %}{% if page_number %}<li class="page-item {% if page_number == customers.page %}active{% endif %}"><a class="page-link" href="{{ url_for('customers.list_customers', page=page_number, q=search) }}">{{ page_number }}</a></li>{% else %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}{% endfor %}
+</ul></nav>{% endif %}
+{% endblock %}

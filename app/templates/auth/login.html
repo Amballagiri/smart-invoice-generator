@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Log in · Smart Invoice Generator{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-md-7 col-lg-5"><div class="card shadow-sm border-0"><div class="card-body p-4">
+  <h1 class="h3 mb-3">Log in</h1>
+  <form method="post" novalidate>{{ form.hidden_tag() }}
+    {% for field in [form.email, form.password] %}<div class="mb-3">{{ field.label(class="form-label") }}{{ field(class="form-control") }}{% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}</div>{% endfor %}
+    {{ form.submit(class="btn btn-primary w-100") }}
+  </form><p class="text-center small mt-3 mb-0">New here? <a href="{{ url_for('auth.register') }}">Create an account</a>.</p>
+</div></div></div></div>
+{% endblock %}

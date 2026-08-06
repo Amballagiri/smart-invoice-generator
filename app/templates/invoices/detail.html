@@ -1,6 +1,197 @@
-{% extends "base.html" %}
-{% block title %}{{ invoice.invoice_number }} · Smart Invoice Generator{% endblock %}
+﻿{% extends "base.html" %}
+
+{% block title %}
+{{ invoice.invoice_number }} · Smart Invoice Generator
+{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/invoice_detail.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4"><div><h1 class="h2 mb-1">{{ invoice.invoice_number }}</h1><span class="badge text-bg-{{ {'Draft':'secondary','Unpaid':'warning','Paid':'success','Cancelled':'danger'}[invoice.status] }}">{{ invoice.status }}</span></div><div class="d-flex gap-2"><a class="btn btn-outline-secondary" href="{{ url_for('invoices.list_invoices') }}">Back</a><a class="btn btn-outline-primary" href="{{ url_for('invoices.download_invoice_pdf', invoice_id=invoice.id) }}">Download PDF</a><button class="btn btn-outline-dark" type="button" onclick="window.print()">Print</button>{% if invoice.status == 'Draft' %}<a class="btn btn-primary" href="{{ url_for('invoices.edit_invoice', invoice_id=invoice.id) }}">Edit draft</a><form method="post" action="{{ url_for('invoices.delete_invoice', invoice_id=invoice.id) }}" onsubmit="return confirm('Delete this draft invoice?');"><button class="btn btn-outline-danger" type="submit">Delete</button></form>{% endif %}</div></div>
-<div class="row g-4"><div class="col-lg-8"><div class="card shadow-sm border-0"><div class="card-body"><div class="row mb-4"><div class="col-md-6"><h2 class="h6 text-muted">Customer</h2><p class="mb-0 fw-semibold">{{ invoice.customer.name }}</p>{% if invoice.customer.email %}<p class="mb-0">{{ invoice.customer.email }}</p>{% endif %}</div><div class="col-md-6"><h2 class="h6 text-muted">Dates</h2><p class="mb-0">Invoice: {{ invoice.invoice_date.strftime('%d %b %Y') }}</p><p class="mb-0">Due: {{ invoice.due_date.strftime('%d %b %Y') if invoice.due_date else '—' }}</p></div></div><div class="table-responsive"><table class="table"><thead><tr><th>Product</th><th class="text-end">Qty</th><th class="text-end">Price</th><th class="text-end">GST</th><th class="text-end">Total</th></tr></thead><tbody>{% for item in invoice.items %}<tr><td>{{ item.product.name }}<small class="d-block text-muted">{{ item.product.sku }}</small></td><td class="text-end">{{ item.quantity }} {{ item.product.unit }}</td><td class="text-end">₹{{ '%.2f'|format(item.unit_price) }}</td><td class="text-end">{{ item.tax_percentage }}%</td><td class="text-end">₹{{ '%.2f'|format(item.line_total) }}</td></tr>{% endfor %}</tbody></table></div>{% if invoice.notes %}<div class="border-top pt-3"><h2 class="h6">Notes</h2><p class="mb-0">{{ invoice.notes }}</p></div>{% endif %}</div></div></div><div class="col-lg-4"><div class="card shadow-sm border-0"><div class="card-body"><dl class="row mb-0"><dt class="col-7">GST</dt><dd class="col-5 text-end">₹{{ '%.2f'|format(invoice.gst_total) }}</dd><dt class="col-7">Discount</dt><dd class="col-5 text-end">₹{{ '%.2f'|format(invoice.discount) }}</dd><dt class="col-7 border-top pt-2">Grand total</dt><dd class="col-5 text-end border-top pt-2 fw-bold">₹{{ '%.2f'|format(invoice.grand_total) }}</dd></dl></div></div></div></div>
+<section class="invoice-detail-page">
+  <header class="invoice-hero">
+    <div class="hero-copy">
+      <div class="eyebrow">Invoice detail</div>
+      <div class="hero-title-row">
+        <h1>{{ invoice.invoice_number }}</h1>
+        <span class="status-pill badge text-bg-{{ {'Draft':'secondary','Unpaid':'warning','Paid':'success','Cancelled':'danger'}[invoice.status] }}">{{ invoice.status }}</span>
+      </div>
+      <p class="hero-subtitle">A polished billing workspace with clear totals, customer details, and fast actions.</p>
+    </div>
+
+    <div class="hero-actions">
+      <a class="btn btn-link btn-back" href="{{ url_for('invoices.list_invoices') }}"><i class="bi bi-arrow-left"></i> Back to invoices</a>
+      <div class="action-group">
+        <a class="btn btn-outline-primary" href="{{ url_for('invoices.download_invoice_pdf', invoice_id=invoice.id) }}"><i class="bi bi-file-earmark-pdf-fill"></i> Download PDF</a>
+        <a class="btn btn-outline-primary" href="{{ url_for('invoices.send_invoice', invoice_id=invoice.id) }}"><i class="bi bi-envelope-paper"></i> Send email</a>
+        <a class="btn btn-outline-primary" target="_blank" href="{{ url_for('invoices.send_whatsapp', invoice_id=invoice.id) }}"><i class="bi bi-whatsapp"></i> WhatsApp</a>
+        <button class="btn btn-outline-secondary" type="button" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+        {% if invoice.status == 'Draft' %}
+        <a class="btn btn-primary" href="{{ url_for('invoices.edit_invoice', invoice_id=invoice.id) }}"><i class="bi bi-pencil-square"></i> Edit</a>
+        <form method="post" action="{{ url_for('invoices.delete_invoice', invoice_id=invoice.id) }}" onsubmit="return confirm('Delete this draft invoice?');" class="delete-form">
+          <button class="btn btn-danger" type="submit"><i class="bi bi-trash"></i> Delete</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <div class="invoice-intro-grid">
+    <article class="invoice-summary-card">
+      <div class="summary-top">
+        <p class="summary-label">Total due</p>
+        <strong class="summary-value">₹{{ '%.2f'|format(invoice.grand_total) }}</strong>
+      </div>
+      <div class="summary-details">
+        <div>
+          <span>Invoice date</span>
+          <strong>{{ invoice.invoice_date.strftime('%d %b %Y') }}</strong>
+        </div>
+        <div>
+          <span>Due date</span>
+          <strong>{{ invoice.due_date.strftime('%d %b %Y') if invoice.due_date else '—' }}</strong>
+        </div>
+        <div>
+          <span>Created by</span>
+          <strong>{{ invoice.created_by.username }}</strong>
+        </div>
+      </div>
+    </article>
+
+    <article class="invoice-meta-card">
+      <h2>Invoice details</h2>
+      <div class="meta-list">
+        <div>
+          <span>Payment method</span>
+          <strong>{{ invoice.payment_method or '—' }}</strong>
+        </div>
+        <div>
+          <span>Currency</span>
+          <strong>{{ invoice.currency }}</strong>
+        </div>
+        <div>
+          <span>Template</span>
+          <strong>{{ invoice.template_name }}</strong>
+        </div>
+        <div>
+          <span>Status</span>
+          <strong>{{ invoice.status }}</strong>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="invoice-detail-grid">
+    <main class="invoice-detail-main">
+      <div class="invoice-info-cards">
+        <section class="info-card billing-card">
+          <div class="card-head">
+            <h2>Bill to</h2>
+            <span>Customer details</span>
+          </div>
+          <p class="info-name">{{ invoice.customer.name }}</p>
+          <div class="info-copy">
+            {% if invoice.customer.address %}<p>{{ invoice.customer.address }}</p>{% endif %}
+            {% if invoice.customer.city or invoice.customer.state or invoice.customer.postal_code or invoice.customer.country %}
+            <p>{{ [invoice.customer.city, invoice.customer.state, invoice.customer.postal_code, invoice.customer.country]|select|join(', ') }}</p>
+            {% endif %}
+            {% if invoice.customer.email %}<p><strong>Email:</strong> <a href="mailto:{{ invoice.customer.email }}">{{ invoice.customer.email }}</a></p>{% endif %}
+            {% if invoice.customer.phone %}<p><strong>Phone:</strong> <a href="tel:{{ invoice.customer.phone }}">{{ invoice.customer.phone }}</a></p>{% endif %}
+          </div>
+        </section>
+
+        <section class="items-card">
+          <div class="card-head">
+            <h2>Line items</h2>
+            <span>Charges, tax and totals</span>
+          </div>
+          <div class="table-responsive">
+            <table class="invoice-items-table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th class="text-end">Qty</th>
+                  <th class="text-end">Unit price</th>
+                  <th class="text-end">GST</th>
+                  <th class="text-end">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in invoice.items %}
+                <tr>
+                  <td data-label="Item">
+                    <p class="product-name">{{ item.product.name }}</p>
+                    <small class="product-sku">{{ item.product.sku }}</small>
+                  </td>
+                  <td class="text-end" data-label="Qty">{{ item.quantity }} {{ item.product.unit }}</td>
+                  <td class="text-end" data-label="Unit price">₹{{ '%.2f'|format(item.unit_price) }}</td>
+                  <td class="text-end" data-label="GST">{{ item.tax_percentage }}%</td>
+                  <td class="text-end" data-label="Total">₹{{ '%.2f'|format(item.line_total) }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {% if invoice.notes %}
+        <section class="notes-card">
+          <h2>Notes</h2>
+          <p>{{ invoice.notes }}</p>
+        </section>
+        {% endif %}
+      </div>
+    </main>
+
+    <aside class="invoice-detail-aside">
+      <section class="payment-summary-card">
+        <div class="aside-head">
+          <span class="summary-pill">Payment summary</span>
+          <h3>Totals</h3>
+        </div>
+        <dl>
+          <div>
+            <dt>GST total</dt>
+            <dd>₹{{ '%.2f'|format(invoice.gst_total) }}</dd>
+          </div>
+          <div>
+            <dt>Discount</dt>
+            <dd>₹{{ '%.2f'|format(invoice.discount) }}</dd>
+          </div>
+          <div>
+            <dt>Round off</dt>
+            <dd>₹{{ '%.2f'|format(invoice.round_off) }}</dd>
+          </div>
+          <div class="grand-total-row">
+            <dt>Grand total</dt>
+            <dd>₹{{ '%.2f'|format(invoice.grand_total) }}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="invoice-summary-card aside-panel">
+        <h3>Invoice details</h3>
+        <dl>
+          <div>
+            <dt>Invoice date</dt>
+            <dd>{{ invoice.invoice_date.strftime('%d %b %Y') }}</dd>
+          </div>
+          <div>
+            <dt>Due date</dt>
+            <dd>{{ invoice.due_date.strftime('%d %b %Y') if invoice.due_date else '—' }}</dd>
+          </div>
+          <div>
+            <dt>Payment method</dt>
+            <dd>{{ invoice.payment_method or '—' }}</dd>
+          </div>
+          <div>
+            <dt>Template</dt>
+            <dd>{{ invoice.template_name }}</dd>
+          </div>
+        </dl>
+      </section>
+    </aside>
+  </div>
+</section>
 {% endblock %}

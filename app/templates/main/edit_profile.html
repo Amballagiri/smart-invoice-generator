@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Edit profile · Smart Invoice{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">{% endblock %}
+{% block content %}
+<div class="edit-profile-page">
+  <div class="page-header">
+    <div><span class="eyebrow">ACCOUNT</span><h1>Edit profile</h1><p>Update the details associated with your workspace.</p></div>
+  </div>
+
+  <section class="edit-profile-card">
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {{ form.hidden_tag() }}
+      <div class="edit-avatar-section">
+        <div class="edit-avatar-wrap">
+          {% if current_user.profile_image %}
+            <img src="{{ url_for('static', filename=current_user.profile_image) }}" alt="Current profile picture">
+          {% else %}
+            <span>{{ current_user.username[:1]|upper }}</span>
+          {% endif %}
+        </div>
+        {{ form.profile_image(class="visually-hidden", id="profile-image-input") }}
+        <label class="btn btn-outline-primary choose-photo-button" for="profile-image-input"><i class="bi bi-camera me-1"></i> Choose New Photo</label>
+        {% for error in form.profile_image.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="edit-profile-fields">
+        <div class="mb-3">{{ form.username.label(class="form-label") }}{{ form.username(class="form-control") }}{% for error in form.username.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}</div>
+        <div class="mb-0">{{ form.email.label(class="form-label") }}{{ form.email(class="form-control") }}{% for error in form.email.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}</div>
+      </div>
+
+      <div class="edit-profile-actions">{{ form.submit(class="btn btn-primary px-4", value="Save Changes") }}<a class="btn btn-outline-secondary px-4" href="{{ url_for('main.profile') }}">Cancel</a></div>
+    </form>
+  </section>
+</div>
+{% endblock %}

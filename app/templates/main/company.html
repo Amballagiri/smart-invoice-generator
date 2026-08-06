@@ -1,0 +1,56 @@
+{% extends "base.html" %}{% block title %}Company · Smart Invoice{% endblock %}{% block content %}<div class="page-header"><div><span class="eyebrow">WORKSPACE</span><h1>Company information</h1><p>Details used across your invoices and correspondence.</p></div></div><section class="card glass-card"><div class="card-body p-4 p-md-5"><div class="d-flex align-items-center gap-3 mb-4"><span class="kpi-icon mb-0"><i class="bi bi-building"></i></span><div><h2 class="h4 mb-1">{{ company.name }}</h2><span class="text-muted">Primary business profile</span></div></div>
+
+  {% if form %}
+  <form method="post" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="mb-3 row">
+      <label class="col-md-3 col-form-label">Company name</label>
+      <div class="col-md-9">
+        {{ form.name(class="form-control") }}
+        {% for e in form.name.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+      </div>
+    </div>
+    <div class="mb-3 row">
+      <label class="col-md-3 col-form-label">Business address</label>
+      <div class="col-md-9">
+        {{ form.address(class="form-control", rows="4") }}
+        {% for e in form.address.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+      </div>
+    </div>
+    <div class="mb-3 row">
+      <label class="col-md-3 col-form-label">GST number</label>
+      <div class="col-md-9">
+        {{ form.gst_number(class="form-control") }}
+        {% for e in form.gst_number.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+      </div>
+    </div>
+    <div class="mb-3 row">
+      <label class="col-md-3 col-form-label">Contact email</label>
+      <div class="col-md-9">
+        {{ form.email(class="form-control") }}
+        {% for e in form.email.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+      </div>
+    </div>
+    <div class="mb-3 row">
+      <label class="col-md-3 col-form-label">Contact phone</label>
+      <div class="col-md-9">
+        {{ form.phone(class="form-control") }}
+        {% for e in form.phone.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('main.company') }}">Cancel</a>
+    </div>
+  </form>
+  {% else %}
+  <dl class="row mb-0">
+    <dt class="col-md-3 text-muted">Company name</dt>
+    <dd class="col-md-9 fw-semibold">{{ company.name }}</dd>
+    <dt class="col-md-3 text-muted">Business address</dt>
+    <dd class="col-md-9">{{ company.address }}</dd>
+    <dt class="col-md-3 text-muted">GST number</dt>
+    <dd class="col-md-9"><span class="badge status-draft">{{ company.gst_number }}</span></dd>
+  </dl>
+  {% endif %}
+</div></section>{% endblock %}

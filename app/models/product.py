@@ -24,6 +24,7 @@ class Product(db.Model):
 
     user = db.relationship("User", back_populates="products")
     invoice_items = db.relationship("InvoiceItem", back_populates="product")
+    inventory_history = db.relationship("InventoryHistory", back_populates="product", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Product {self.sku}>"

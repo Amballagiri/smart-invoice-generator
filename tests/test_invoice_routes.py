@@ -3,6 +3,9 @@ from app.models.customer import Customer
 from app.models.invoice import Invoice
 from app.models.product import Product
 from app.models.user import User
+from io import BytesIO
+
+from pypdf import PdfReader
 
 
 def _login(client, app, email="owner@example.com"):
@@ -80,3 +83,19 @@ def test_invoice_is_not_accessible_by_another_user(client, app):
     client.post("/auth/logout")
     _login(client, app, "other@example.com")
     assert client.get(f"/invoices/{invoice_id}").status_code == 404
+
+
+def test_invoice_pdf_download_contains_invoice_details(client, app):
+    _login(client, app)
+    customer_id, product_id = _setup_invoice_data(app)
+    client.post("/invoices/create", data=_invoice_data(customer_id, product_id))
+    with app.app_context():
+        invoice = Invoice.query.one()
+        invoice_id, invoice_number = invoice.id, invoice.invoice_number
+    response = client.get(f"/invoices/{invoice_id}/pdf")
+    assert response.status_code == 200
+    assert response.mimetype == "application/pdf"
+    text = "".join(page.extract_text() or "" for page in PdfReader(BytesIO(response.data)).pages)
+    assert invoice_number in text
+    assert "Acme Ltd" in text
+    assert "Grand total" in text

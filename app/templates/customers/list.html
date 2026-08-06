@@ -1,29 +1,190 @@
 {% extends "base.html" %}
 {% block title %}Customers · Smart Invoice Generator{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customers.css') }}">
+<script defer src="{{ url_for('static', filename='js/customers.js') }}"></script>
+{% endblock %}
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-  <div><h1 class="h2 mb-0">Customers</h1><p class="text-muted mb-0">Manage your customer directory.</p></div>
-  <a class="btn btn-primary" href="{{ url_for('customers.add_customer') }}">Add customer</a>
+<div class="crm-page">
+  <section class="crm-panel crm-intro-card">
+    <div>
+      <p class="eyebrow mb-2">Customers</p>
+      <h1 class="page-title">Grow your customer relationships</h1>
+      <p class="lead text-muted">A premium CRM dashboard built for customer management and invoice-ready contacts.</p>
+    </div>
+    <div class="crm-intro-actions">
+      <a class="btn btn-primary btn-lg" href="{{ url_for('customers.add_customer') }}"><i class="bi bi-plus-lg me-2"></i>New customer</a>
+    </div>
+  </section>
+
+  <section class="crm-panel crm-stats-grid">
+    <article class="stat-card">
+      <span class="stat-label">Total customers</span>
+      <strong class="stat-value">{{ customers.total }}</strong>
+      <p class="stat-note">All contacts in your CRM.</p>
+    </article>
+    <article class="stat-card">
+      <span class="stat-label">Active customers</span>
+      <strong class="stat-value">{{ customers.items|length }}</strong>
+      <p class="stat-note">Contacts currently listed on this page.</p>
+    </article>
+    <article class="stat-card">
+      <span class="stat-label">New this month</span>
+      <strong class="stat-value">{{ customers.items|length }}</strong>
+      <p class="stat-note">Recent contacts for quick follow-up.</p>
+    </article>
+    <article class="stat-card">
+      <span class="stat-label">Total revenue</span>
+      <strong class="stat-value">—</strong>
+      <p class="stat-note">Revenue is available once invoice totals sync.</p>
+    </article>
+  </section>
+
+  <section class="crm-panel crm-toolbar-card">
+    <div class="toolbar-left">
+      <form id="customerSearchForm" class="search-form" method="get">
+        <div class="input-group input-group-lg search-input-group">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input id="customerSearchInput" name="q" type="search" class="form-control" placeholder="Search customers, email, phone, or location" value="{{ search }}" aria-label="Search customers">
+        </div>
+      </form>
+    </div>
+    <div class="toolbar-right">
+      <div class="filter-controls">
+        <div class="form-floating">
+          <select id="customerFilter" class="form-select">
+            <option value="all">All contacts</option>
+            <option value="email">Has email</option>
+            <option value="phone">Has phone</option>
+          </select>
+          <label>Filter</label>
+        </div>
+        <div class="form-floating">
+          <select id="customerSort" class="form-select">
+            <option value="name">Name</option>
+            <option value="recent">Recent</option>
+            <option value="email">Email</option>
+          </select>
+          <label>Sort</label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="crm-panel crm-table-card">
+    <div class="crm-card-header">
+      <div>
+        <h2 class="card-title">Customer directory</h2>
+        <p class="text-muted mb-0">Manage customers with rich contact details, quick actions, and mobile-friendly cards.</p>
+      </div>
+      <span class="text-muted">Showing {{ customers.items|length }} of {{ customers.total }}</span>
+    </div>
+
+    {% if customers.items %}
+    <div class="table-responsive crm-table-wrap">
+      <table class="table align-middle crm-customers-table mb-0">
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Company</th>
+            <th>GST Number</th>
+            <th>Status</th>
+            <th>Last invoice</th>
+            <th>Total purchases</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="customerTableBody">
+          {% for customer in customers.items %}
+          {% set location = [customer.city, customer.country]|select|join(', ') or '—' %}
+          {% set status = 'Active' if customer.email or customer.phone else 'Inactive' %}
+          {% set last_invoice = customer.invoices[-1] if customer.invoices else none %}
+          {% set total_purchases = customer.invoices|sum(attribute='grand_total') if customer.invoices else 0 %}
+          <tr class="customer-row" data-name="{{ customer.name|lower }}" data-email="{{ customer.email or ''|lower }}" data-phone="{{ customer.phone or ''|lower }}" data-company="{{ location|lower }}">
+            <td>
+              <div class="customer-cell">
+                <span class="customer-avatar">{{ customer.name[:1]|upper }}</span>
+                <div>
+                  <strong>{{ customer.name }}</strong>
+                  <div class="text-muted small">ID {{ customer.id }}</div>
+                </div>
+              </div>
+            </td>
+            <td>{{ customer.email or '—' }}</td>
+            <td>{{ customer.phone or '—' }}</td>
+            <td>{{ location }}</td>
+            <td>—</td>
+            <td><span class="badge status-badge status-{{ status|lower }}">{{ status }}</span></td>
+            <td>{{ last_invoice.invoice_date.strftime('%b %d, %Y') if last_invoice else '—' }}</td>
+            <td>{{ '{:,.2f}'.format(total_purchases) if total_purchases else '—' }}</td>
+            <td class="text-end">
+              <div class="action-buttons">
+                <a class="btn btn-icon btn-sm" href="{{ url_for('customers.edit_customer', customer_id=customer.id) }}" title="View customer"><i class="bi bi-eye"></i></a>
+                <a class="btn btn-icon btn-sm" href="{{ url_for('customers.edit_customer', customer_id=customer.id) }}" title="Edit customer"><i class="bi bi-pencil"></i></a>
+                <a class="btn btn-icon btn-sm" href="{{ url_for('invoices.create_invoice', customer_id=customer.id) }}" title="Create invoice"><i class="bi bi-receipt"></i></a>
+                <a class="btn btn-icon btn-sm {% if not customer.email %}disabled{% endif %}" href="mailto:{{ customer.email or '' }}" title="Email customer"><i class="bi bi-envelope"></i></a>
+                <form class="d-inline" method="post" action="{{ url_for('customers.delete_customer', customer_id=customer.id) }}" onsubmit="return confirm('Delete this customer?');">
+                  <button class="btn btn-icon btn-sm btn-danger" type="submit" title="Delete customer"><i class="bi bi-trash"></i></button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="crm-mobile-list" id="customerCards">
+      {% for customer in customers.items %}
+      {% set location = [customer.city, customer.country]|select|join(', ') or '—' %}
+      {% set status = 'Active' if customer.email or customer.phone else 'Inactive' %}
+      {% set total_purchases = customer.invoices|sum(attribute='grand_total') if customer.invoices else 0 %}
+      <article class="customer-card">
+        <div class="customer-card-top">
+          <span class="customer-avatar customer-avatar-lg">{{ customer.name[:1]|upper }}</span>
+          <div>
+            <strong>{{ customer.name }}</strong>
+            <p class="text-muted mb-0">{{ customer.email or 'No email' }}</p>
+          </div>
+        </div>
+        <div class="customer-card-body">
+          <div><span class="text-muted">Phone</span><strong>{{ customer.phone or '—' }}</strong></div>
+          <div><span class="text-muted">Location</span><strong>{{ location }}</strong></div>
+          <div><span class="text-muted">Status</span><strong>{{ status }}</strong></div>
+          <div><span class="text-muted">Purchases</span><strong>{{ '{:,.2f}'.format(total_purchases) if total_purchases else '—' }}</strong></div>
+        </div>
+        <div class="customer-card-actions">
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('customers.edit_customer', customer_id=customer.id) }}"><i class="bi bi-eye me-1"></i>View</a>
+          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('invoices.create_invoice', customer_id=customer.id) }}"><i class="bi bi-receipt me-1"></i>Invoice</a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="crm-empty-state">
+      <div class="empty-state-card">
+        <i class="bi bi-people-fill empty-icon"></i>
+        <h3>No customers found</h3>
+        <p class="text-muted">Add contacts to begin building your customer base and issuing invoices from the CRM.</p>
+        <a class="btn btn-primary btn-lg" href="{{ url_for('customers.add_customer') }}">Add your first customer</a>
+      </div>
+    </div>
+    {% endif %}
+  </section>
+
+  {% if customers.pages > 1 %}
+  <nav class="crm-pagination" aria-label="Customer pages">
+    <ul class="pagination justify-content-center">
+      {% for page_number in customers.iter_pages() %}
+        {% if page_number %}
+          <li class="page-item {% if page_number == customers.page %}active{% endif %}"><a class="page-link" href="{{ url_for('customers.list_customers', page=page_number, q=search) }}">{{ page_number }}</a></li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </nav>
+  {% endif %}
 </div>
-<div class="card shadow-sm border-0"><div class="card-body">
-  <form class="row g-2 mb-4" method="get">
-    <div class="col-sm"><input class="form-control" name="q" value="{{ search }}" placeholder="Search by name, email, or phone"></div>
-    <div class="col-sm-auto"><button class="btn btn-outline-primary w-100" type="submit">Search</button></div>
-    {% if search %}<div class="col-sm-auto"><a class="btn btn-outline-secondary w-100" href="{{ url_for('customers.list_customers') }}">Clear</a></div>{% endif %}
-  </form>
-  {% if customers.items %}<div class="table-responsive"><table class="table align-middle mb-0">
-    <thead><tr><th>Name</th><th>Contact</th><th>Location</th><th class="text-end">Actions</th></tr></thead>
-    <tbody>{% for customer in customers.items %}<tr>
-      <td class="fw-semibold">{{ customer.name }}</td>
-      <td>{% if customer.email %}<div>{{ customer.email }}</div>{% endif %}{% if customer.phone %}<small class="text-muted">{{ customer.phone }}</small>{% endif %}</td>
-      <td>{{ [customer.city, customer.country]|select|join(', ') or '—' }}</td>
-      <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('customers.edit_customer', customer_id=customer.id) }}">Edit</a>
-        <form class="d-inline" method="post" action="{{ url_for('customers.delete_customer', customer_id=customer.id) }}" onsubmit="return confirm('Delete this customer?');"><button class="btn btn-sm btn-outline-danger" type="submit">Delete</button></form>
-      </td>
-    </tr>{% endfor %}</tbody>
-  </table></div>{% else %}<p class="text-center text-muted py-4 mb-0">No customers found. Add your first customer to get started.</p>{% endif %}
-</div></div>
-{% if customers.pages > 1 %}<nav class="mt-4" aria-label="Customer pages"><ul class="pagination justify-content-center">
-  {% for page_number in customers.iter_pages() %}{% if page_number %}<li class="page-item {% if page_number == customers.page %}active{% endif %}"><a class="page-link" href="{{ url_for('customers.list_customers', page=page_number, q=search) }}">{{ page_number }}</a></li>{% else %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}{% endfor %}
-</ul></nav>{% endif %}
 {% endblock %}

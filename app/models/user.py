@@ -11,9 +11,17 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False, index=True)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(256), nullable=False)
+    profile_image = db.Column(db.String(255), nullable=True)
     customers = db.relationship("Customer", back_populates="user", cascade="all, delete-orphan")
     products = db.relationship("Product", back_populates="user", cascade="all, delete-orphan")
     invoices = db.relationship("Invoice", back_populates="created_by", cascade="all, delete-orphan")
+    inventory_history = db.relationship("InventoryHistory", back_populates="user", cascade="all, delete-orphan")
+    ai_conversations = db.relationship(
+        "AIConversation",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    notifications = db.relationship("Notification", back_populates="user", cascade="all, delete-orphan")
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

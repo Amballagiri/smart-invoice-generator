@@ -3,7 +3,7 @@ from urllib.parse import urljoin, urlparse
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
 
-from app.extensions import db
+from app.extensions import csrf, db
 from app.forms.auth_forms import LoginForm, RegistrationForm
 from app.models.user import User
 
@@ -49,7 +49,8 @@ def login():
     return render_template("auth/login.html", form=form)
 
 
-@auth_bp.post("/logout")
+@auth_bp.route("/logout", methods=["GET", "POST"])
+@csrf.exempt
 def logout():
     if current_user.is_authenticated:
         logout_user()

@@ -32,3 +32,9 @@ class ProductForm(FlaskForm):
             query = query.filter(Product.id != self.product.id)
         if query.first():
             raise ValidationError("You already have a product with this SKU.")
+
+
+class RestockForm(FlaskForm):
+    quantity = DecimalField("Quantity to add", places=3, validators=[DataRequired(), NumberRange(min=Decimal("0.001"))])
+    reason = StringField("Reason", validators=[DataRequired(), Length(max=255)])
+    submit = SubmitField("Restock product")

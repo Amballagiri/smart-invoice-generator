@@ -1,0 +1,323 @@
+﻿{% extends "base.html" %}
+{% block title %}Invoice Builder · Smart Invoice{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/invoice_builder.css') }}">
+<script defer src="{{ url_for('static', filename='js/invoice_builder.js') }}"></script>
+{% endblock %}
+{% block content %}
+<section class="invoice-builder">
+  <header class="builder-header">
+    <div>
+      <span class="eyebrow">Invoice builder</span>
+      <h1>Build invoices like a modern billing product</h1>
+      <p>Create professional invoices faster with a slick editor and live A4 preview.</p>
+    </div>
+
+    <div class="builder-actions">
+      <button class="btn btn-outline-secondary" type="button" data-scroll-to-preview>
+        <i class="bi bi-eye"></i> Preview
+      </button>
+      <button class="btn btn-primary" name="submit_action" value="draft" type="submit" form="invoice-builder-form">
+        <i class="bi bi-save"></i> Save draft
+      </button>
+    </div>
+  </header>
+
+  <form method="post" id="invoice-builder-form" data-products='{{ products|tojson }}' data-customers='{{ customers|tojson }}'>
+    {{ form.hidden_tag() }}
+
+    <div class="builder-grid">
+      <div class="builder-main">
+        <section class="builder-card">
+          <div class="builder-card-title">
+            <span class="section-icon"><i class="bi bi-file-earmark-text"></i></span>
+            <div>
+              <h2>Invoice details</h2>
+              <p>Set the invoice customer, due date, template, and currency.</p>
+            </div>
+          </div>
+
+          <div class="builder-fields">
+            <div>
+              {{ form.customer_id.label(class="form-label") }}
+              {{ form.customer_id(class="form-select", id="customer_id") }}
+            </div>
+            <div>
+              <label class="form-label">Invoice number</label>
+              <div class="auto-number"><i class="bi bi-magic"></i> Automatically generated on save</div>
+            </div>
+            <div>
+              {{ form.invoice_date.label(class="form-label") }}
+              {{ form.invoice_date(class="form-control", id="invoice_date") }}
+            </div>
+            <div>
+              {{ form.due_date.label(class="form-label") }}
+              {{ form.due_date(class="form-control", id="due_date") }}
+            </div>
+            <div>
+              {{ form.status.label(class="form-label") }}
+              {{ form.status(class="form-select", id="status") }}
+            </div>
+            <div>
+              {{ form.currency.label(class="form-label") }}
+              {{ form.currency(class="form-select", id="currency") }}
+            </div>
+            <div>
+              {{ form.payment_method.label(class="form-label") }}
+              {{ form.payment_method(class="form-select", id="payment_method") }}
+            </div>
+            <div>
+              {{ form.template_name.label(class="form-label") }}
+              {{ form.template_name(class="form-select", id="template_name") }}
+            </div>
+            <div>
+              {{ form.discount.label(class="form-label") }}
+              <div class="input-group">
+                {{ form.discount(class="form-control", min="0", step="0.01", id="discount") }}
+                <span class="input-group-text">₹</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="builder-card">
+          <div class="builder-card-title">
+            <span class="section-icon"><i class="bi bi-person-badge"></i></span>
+            <div>
+              <h2>Customer snapshot</h2>
+              <p>Quick view of selected customer information.</p>
+            </div>
+          </div>
+          <div class="customer-summary" id="customer-summary">
+            <div>
+              <span class="summary-label">Customer</span>
+              <strong id="summary-customer">Choose a customer from the list</strong>
+            </div>
+            <div>
+              <span class="summary-label">Contact</span>
+              <p id="summary-contact">Customer details will appear here.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="builder-card">
+          <div class="builder-card-title">
+            <span class="section-icon"><i class="bi bi-list-check"></i></span>
+            <div>
+              <h2>Line items</h2>
+              <p>Enter products, quantities, and taxes for each invoice row.</p>
+            </div>
+          </div>
+
+          <div class="builder-table-wrap">
+            <table class="builder-table" aria-label="Invoice line items">
+              <thead>
+                <tr>
+                  <th class="product-col">Product</th>
+                  <th class="description-col">Description</th>
+                  <th class="qty-col">Qty</th>
+                  <th class="price-col">Unit price</th>
+                  <th class="tax-col">GST %</th>
+                  <th class="amount-col text-end">Amount</th>
+                  <th class="remove-col"><span class="visually-hidden">Remove</span></th>
+                </tr>
+              </thead>
+              <tbody id="builder-items">
+                {% for item in form.items %}
+                <tr class="builder-item">
+                  <td data-label="Product">{{ item.form.product_id(class="form-select product-select") }}</td>
+                  <td data-label="Description">{{ item.form.description(class="form-control item-description", placeholder="Item description") }}</td>
+                  <td data-label="Qty">{{ item.form.quantity(class="form-control quantity-input", min="0.001", step="0.001", placeholder="0") }}</td>
+                  <td data-label="Unit price">{{ item.form.unit_price(class="form-control price-input", min="0.01", step="0.01", placeholder="0.00") }}</td>
+                  <td data-label="GST">{{ item.form.tax_percentage(class="form-control tax-input", min="0", max="100", step="0.01", placeholder="0") }}</td>
+                  <td data-label="Amount" class="line-total">₹0.00</td>
+                  <td data-label="Delete">
+                    <button class="remove-builder-item" type="button" aria-label="Remove item">
+                      <i class="bi bi-trash3"></i>
+                    </button>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="table-actions">
+            <button class="btn btn-outline-primary" type="button" id="add-builder-item">
+              <i class="bi bi-plus-lg"></i> Add item
+            </button>
+          </div>
+        </section>
+
+        <section class="builder-card notes-card">
+          <div class="builder-card-title">
+            <span class="section-icon"><i class="bi bi-journal-text"></i></span>
+            <div>
+              <h2>Notes & terms</h2>
+              <p>Add payment instructions, notes, or invoice terms.</p>
+            </div>
+          </div>
+
+          <div class="notes-grid">
+            <div>
+              {{ form.notes.label(class="form-label") }}
+              {{ form.notes(class="form-control", rows="5", id="notes", placeholder="Add a personal note") }}
+            </div>
+            <div>
+              {{ form.terms.label(class="form-label") }}
+              {{ form.terms(class="form-control", rows="5", id="terms", placeholder="Add payment terms") }}
+            </div>
+          </div>
+        </section>
+
+        <section class="totals-card">
+          <div class="totals-header">
+            <span class="section-icon small"><i class="bi bi-calculator"></i></span>
+            <div>
+              <h2>Invoice totals</h2>
+              <p>Review the subtotal, tax, discounts, and final amount.</p>
+            </div>
+          </div>
+
+          <dl class="totals-list">
+            <div>
+              <dt>Subtotal</dt>
+              <dd id="form-subtotal">₹0.00</dd>
+            </div>
+            <div>
+              <dt>GST</dt>
+              <dd id="form-gst">₹0.00</dd>
+            </div>
+            <div>
+              <dt>Discount</dt>
+              <dd id="form-discount">₹0.00</dd>
+            </div>
+            <div>
+              <dt>Round off</dt>
+              <dd id="form-round">₹0.00</dd>
+            </div>
+            <div class="grand-total-row">
+              <dt>Grand total</dt>
+              <dd id="form-grand">₹0.00</dd>
+            </div>
+          </dl>
+
+          <button class="btn btn-primary btn-generate" name="submit_action" value="generate" type="submit">
+            <i class="bi bi-check2-circle"></i> Generate invoice
+          </button>
+        </section>
+      </div>
+
+      <aside class="builder-preview-column">
+        <div class="preview-panel">
+          <div class="preview-panel-header">
+            <div>
+              <h3>Live A4 preview</h3>
+              <p>See the invoice update instantly as you edit the form.</p>
+            </div>
+            <button class="btn btn-outline-secondary preview-toggle" type="button" data-preview-toggle>
+              <i class="bi bi-caret-down"></i> Preview
+            </button>
+          </div>
+
+          <div class="preview-toolbar">
+            <div class="toolbar-group">
+              <button class="toolbar-button" type="button" data-preview-zoom-out>
+                <i class="bi bi-zoom-out"></i>
+              </button>
+              <span class="zoom-label"><span id="preview-zoom-value">100%</span></span>
+              <button class="toolbar-button" type="button" data-preview-zoom-in>
+                <i class="bi bi-zoom-in"></i>
+              </button>
+            </div>
+            <div class="toolbar-group">
+              <button class="toolbar-button" type="button" onclick="window.print()" title="Print preview">
+                <i class="bi bi-printer"></i>
+              </button>
+              <button class="toolbar-button" type="button" disabled title="Download PDF available after saving">
+                <i class="bi bi-download"></i>
+              </button>
+              <button class="toolbar-button" type="button" id="preview-fullscreen" title="Full screen preview">
+                <i class="bi bi-arrows-fullscreen"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="preview-stage" id="preview-stage">
+            <div class="preview-frame">
+              <div class="preview-frame-inner" id="preview-frame-inner">
+                <article class="a4-preview" id="a4-preview" data-template="Modern Blue">
+                  <header class="preview-head">
+                    <div class="preview-brand">
+                      <span class="preview-logo">SI</span>
+                      <div>
+                        <strong>{{ config.COMPANY_NAME }}</strong>
+                        <small>{{ config.COMPANY_ADDRESS }}</small>
+                        <small>GSTIN: {{ config.COMPANY_GST_NUMBER }}</small>
+                        <small>{{ config.COMPANY_EMAIL or 'hello@smartinvoice.app' }} · {{ config.COMPANY_PHONE or '+91 00000 00000' }}</small>
+                      </div>
+                    </div>
+                    <div class="preview-invoice">
+                      <span class="invoice-badge">INVOICE</span>
+                      <strong id="preview-number">INV · Auto generated</strong>
+                      <small id="preview-status">Draft</small>
+                    </div>
+                  </header>
+                  <section class="preview-meta">
+                    <div>
+                      <small>BILL TO</small>
+                      <strong id="preview-customer">Select a customer</strong>
+                      <span id="preview-customer-contact">Customer details appear here</span>
+                    </div>
+                    <div>
+                      <small>Invoice date</small>
+                      <strong id="preview-invoice-date">—</strong>
+                      <small>Due <span id="preview-due-date">—</span></small>
+                    </div>
+                  </section>
+                  <div class="preview-items-wrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Item</th>
+                          <th>Qty</th>
+                          <th>Price</th>
+                          <th>GST</th>
+                          <th class="text-end">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody id="preview-items">
+                        <tr><td colspan="5" class="preview-empty">Your items will appear here</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <section class="preview-totals">
+                    <div class="preview-terms">
+                      <small>NOTES & TERMS</small>
+                      <p id="preview-notes">—</p>
+                      <p id="preview-terms">—</p>
+                    </div>
+                    <dl>
+                      <div><dt>Subtotal</dt><dd id="preview-subtotal">₹0.00</dd></div>
+                      <div><dt>GST</dt><dd id="preview-gst">₹0.00</dd></div>
+                      <div><dt>Discount</dt><dd id="preview-discount">₹0.00</dd></div>
+                      <div><dt>Round off</dt><dd id="preview-round">₹0.00</dd></div>
+                      <div class="grand"><dt>Grand total</dt><dd id="preview-grand">₹0.00</dd></div>
+                    </dl>
+                  </section>
+                  <footer>
+                    <span id="preview-words">Zero rupees only</span>
+                    <div class="preview-qr" aria-label="QR code placeholder"><i class="bi bi-qr-code"></i></div>
+                    <span class="preview-signature">Authorised signature</span>
+                  </footer>
+                </article>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </form>
+</section>
+{% endblock %}
+

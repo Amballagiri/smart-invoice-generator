@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}AI Invoice Assistant · Smart Invoice{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/ai.css') }}"><script defer src="{{ url_for('static', filename='js/ai.js') }}"></script>{% endblock %}
+{% block content %}
+<section class="ai-page" data-ai-chat data-message-url="{{ url_for('ai.message') }}">
+  <header class="ai-header glass-card"><span class="ai-orb"><i class="bi bi-robot"></i></span><span><p class="eyebrow">SMART INVOICE AI</p><h1>AI Invoice Assistant</h1><p>Ask about your business, invoices, customers, or stock.</p></span><span class="ai-online"><i></i> Ready to help</span></header>
+  <div class="ai-chat-shell glass-card"><div class="ai-messages" id="aiMessages" aria-live="polite">
+    {% if conversations %}{% for conversation in conversations %}
+      <article class="chat-message chat-message-user"><div class="chat-avatar">{{ current_user.username[:1]|upper }}</div><div class="message-bubble"><div class="message-content">{{ conversation.question }}</div></div></article>
+      <article class="chat-message chat-message-assistant"><div class="chat-avatar"><i class="bi bi-robot"></i></div><div class="message-bubble"><button class="copy-message" type="button" title="Copy response"><i class="bi bi-copy"></i></button><div class="message-content markdown-content" data-markdown>{{ conversation.answer }}</div></div></article>
+    {% endfor %}{% else %}
+      <div class="ai-empty" id="aiEmpty"><span class="ai-orb"><i class="bi bi-stars"></i></span><h2>What can I help you with?</h2><p>Create invoices, check revenue, find low stock, or learn about your customers.</p><div class="prompt-chips"><button type="button">Show pending invoices</button><button type="button">Who is my best customer?</button><button type="button">How much revenue did I earn this month?</button></div></div>
+    {% endif %}
+  </div><form class="ai-composer" id="aiComposer"><input type="hidden" id="csrfToken" value="{{ csrf_token() }}"><textarea id="aiMessage" rows="1" maxlength="2000" placeholder="Type your message…" aria-label="Message AI Invoice Assistant"></textarea><button type="submit" class="ai-send" id="aiSend"><span>Send</span><i class="bi bi-arrow-up"></i></button><small>AI can make business records when you ask it to.</small></form></div>
+</section>
+{% endblock %}

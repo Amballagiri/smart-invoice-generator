@@ -13,5 +13,5 @@ def test_user_can_register_log_in_and_log_out(client, app):
     with app.app_context():
         user = User.query.filter_by(email="ada@example.com").first()
         assert user and user.check_password("secure-password")
-    assert b"Welcome, ada" in client.post("/auth/login", data={"email": "ada@example.com", "password": "secure-password"}, follow_redirects=True).data
+    assert b"Welcome back! You are now logged in." in client.post("/auth/login", data={"email": "ada@example.com", "password": "secure-password"}, follow_redirects=True).data
     assert b"logged out" in client.post("/auth/logout", follow_redirects=True).data

@@ -12,6 +12,8 @@ class InvoiceItem(db.Model):
     quantity = db.Column(db.Numeric(12, 3), nullable=False)
     unit_price = db.Column(db.Numeric(12, 2), nullable=False)
     tax_percentage = db.Column(db.Numeric(5, 2), nullable=False, default=Decimal("0.00"))
+    discount_percentage = db.Column(db.Numeric(5, 2), nullable=False, default=Decimal("0.00"))
+    description = db.Column(db.String(500), nullable=True)
     line_total = db.Column(db.Numeric(12, 2), nullable=False, default=Decimal("0.00"))
 
     invoice = db.relationship("Invoice", back_populates="items")
@@ -19,6 +21,7 @@ class InvoiceItem(db.Model):
 
     def recalculate_line_total(self):
         base_total = self.quantity * self.unit_price
+        base_total -= base_total * (self.discount_percentage or Decimal("0.00")) / Decimal("100")
         self.line_total = (base_total * (Decimal("1.00") + self.tax_percentage / Decimal("100"))).quantize(Decimal("0.01"))
 
     def __repr__(self):

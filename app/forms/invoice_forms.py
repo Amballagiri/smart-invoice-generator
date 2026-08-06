@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from flask_wtf import FlaskForm
-from wtforms import DateField, DecimalField, FieldList, Form, FormField, SelectField, SubmitField, TextAreaField
+from wtforms import DateField, DecimalField, FieldList, Form, FormField, SelectField, StringField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, InputRequired, NumberRange, Optional
 
 from app.models.customer import Customer
@@ -13,6 +13,10 @@ class InvoiceItemForm(Form):
     quantity = DecimalField(
         "Quantity", places=3, validators=[DataRequired(), NumberRange(min=Decimal("0.001"))]
     )
+    unit_price = DecimalField("Unit price", places=2, validators=[Optional(), NumberRange(min=Decimal("0.001"))])
+    tax_percentage = DecimalField("Tax %", places=2, validators=[Optional(), NumberRange(min=Decimal("0"), max=Decimal("100"))])
+    discount_percentage = DecimalField("Discount %", places=2, validators=[Optional(), NumberRange(min=Decimal("0"), max=Decimal("100"))])
+    description = StringField("Description", validators=[Optional()])
 
 
 class InvoiceForm(FlaskForm):
@@ -21,13 +25,17 @@ class InvoiceForm(FlaskForm):
     due_date = DateField("Due date", validators=[Optional()])
     status = SelectField(
         "Status",
-        choices=[("Draft", "Draft"), ("Unpaid", "Unpaid"), ("Paid", "Paid"), ("Cancelled", "Cancelled")],
+        choices=[("Draft", "Draft"), ("Unpaid", "Pending"), ("Paid", "Paid"), ("Cancelled", "Cancelled")],
         validators=[DataRequired()],
     )
     discount = DecimalField(
-        "Discount", places=2, default=Decimal("0.00"), validators=[InputRequired(), NumberRange(min=Decimal("0"))]
+        "Discount", places=2, default=Decimal("0.00"), validators=[Optional(), NumberRange(min=Decimal("0"))]
     )
     notes = TextAreaField("Notes", validators=[Optional()])
+    terms = TextAreaField("Terms & conditions", validators=[Optional()])
+    currency = SelectField("Currency", choices=[("INR", "INR (₹)"), ("USD", "USD ($)"), ("EUR", "EUR (€)")], default="INR")
+    payment_method = SelectField("Payment method", choices=[("", "Select payment method"), ("Bank transfer", "Bank transfer"), ("UPI", "UPI"), ("Cash", "Cash"), ("Card", "Card")], validators=[Optional()])
+    template_name = SelectField("Invoice template", choices=[("Modern Blue", "Modern Blue"), ("Corporate", "Corporate"), ("Minimal", "Minimal"), ("Classic", "Classic"), ("Premium", "Premium")], default="Modern Blue")
     items = FieldList(FormField(InvoiceItemForm), min_entries=1, validators=[DataRequired()])
     submit = SubmitField("Save invoice")
 

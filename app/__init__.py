@@ -60,8 +60,7 @@ def create_app(test_config=None):
     app.register_blueprint(invoices_bp)
     app.register_blueprint(ai_bp)
 
-    if app.config.get("AUTO_CREATE_DB", False):
-        with app.app_context():
-            db.create_all()
+    with app.app_context():
+        db.create_all()
 
     return app

@@ -1,4 +1,5 @@
 from datetime import date
+from decimal import Decimal
 
 from flask import (
     Blueprint,
@@ -19,6 +20,7 @@ from app.models.invoice import Invoice
 from app.models.invoice_item import InvoiceItem
 from app.models.customer import Customer
 from app.models.product import Product
+from app.models.invoice import generate_invoice_number
 from app.services.inventory_service import reduce_stock
 from app.services.pdf_service import generate_invoice_pdf
 from app.services.email_service import send_invoice_email
@@ -88,16 +90,21 @@ def list_invoices():
 def create_invoice():
 
     form = InvoiceForm(
-        user_id=current_user.id,
-        invoice_date=date.today(),
-        status="Draft",
+         user_id=current_user.id,
+         invoice_date=date.today(),
+         status="Draft",
     )
+    form.currency.data = "INR"
+    form.terms.data = "30 Days"
+    form.notes.data = "Thank you for your business."
+    form.discount.data = Decimal("0.00")
 
     if form.validate_on_submit():
 
         invoice = Invoice(
             created_by_id=current_user.id
         )
+        invoice.invoice_number = generate_invoice_number("INV")
 
         _populate_invoice(invoice, form)
         _replace_items(invoice, form)

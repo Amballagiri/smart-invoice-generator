@@ -5,9 +5,9 @@ from secrets import token_hex
 from app.extensions import db
 
 
-def generate_invoice_number():
+def generate_invoice_number(prefix="INV"):
     """Generate a readable, collision-resistant invoice number."""
-    return f"INV-{datetime.now(timezone.utc):%Y%m%d}-{token_hex(3).upper()}"
+    return f"{prefix}-{datetime.now(timezone.utc):%Y%m%d}-{token_hex(3).upper()}"
 
 
 class Invoice(db.Model):

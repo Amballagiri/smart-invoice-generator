@@ -116,7 +116,7 @@ def change_password():
     return render_template("main/change_password.html", form=form)
 
 
-@main_bp.get("/settings")
+@main_bp.route("/settings")
 @login_required
 def settings():
     company = {
@@ -124,8 +124,11 @@ def settings():
         "gst_number": current_app.config["COMPANY_GST_NUMBER"],
         "email": current_user.email,
     }
-    return render_template("main/settings.html", company=company)
 
+    return render_template(
+        "main/settings.html",
+         company=company,
+    )
 
 @main_bp.route("/company", methods=["GET", "POST"])
 @login_required

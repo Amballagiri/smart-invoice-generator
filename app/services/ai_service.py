@@ -38,21 +38,36 @@ class InvoiceAssistant:
             raise AssistantError("Please enter a message.")
         if len(question) > self.MAX_QUESTION_LENGTH:
             raise AssistantError("Please keep your message under 2,000 characters.")
-        if not current_app.config.get("OPENAI_API_KEY"):
-            raise AssistantError("The AI assistant is not configured. Add OPENAI_API_KEY to your environment and restart the app.")
+        provider = current_app.config.get("AI_PROVIDER", "openai")
+        if provider == "openrouter":
+            api_key = current_app.config.get("OPENROUTER_API_KEY")
+            model = current_app.config.get("OPENROUTER_MODEL")
+            client_options = {
+                "api_key": api_key,
+                "base_url": "https://openrouter.ai/api/v1",
+            }
+        elif provider == "openai":
+            api_key = current_app.config.get("OPENAI_API_KEY")
+            model = current_app.config.get("OPENAI_MODEL")
+            client_options = {"api_key": api_key}
+        else:
+            raise AssistantError("The AI assistant provider is not configured correctly.")
+
+        if not api_key:
+            raise AssistantError("The AI assistant is not configured. Add the selected provider's API key to your environment and restart the app.")
 
         try:
             from openai import OpenAI
         except ImportError as exc:
             raise AssistantError("The OpenAI package is not installed. Install project dependencies and try again.") from exc
 
-        client = OpenAI(api_key=current_app.config["OPENAI_API_KEY"])
+        client = OpenAI(**client_options)
         inputs = self._conversation_input(question)
 
         try:
             for _ in range(self.MAX_TOOL_ROUNDS):
                 response = client.responses.create(
-                    model=current_app.config["OPENAI_MODEL"],
+                    model=model,
                     instructions=self._instructions(),
                     input=inputs,
                     tools=self._tools(),
@@ -80,7 +95,7 @@ class InvoiceAssistant:
                         "output": json.dumps(result, default=str),
                     })
         except Exception as exc:
-            current_app.logger.exception("OpenAI request failed")
+            current_app.logger.exception("AI provider request failed")
             raise AssistantError("I couldn't reach the AI service right now. Please try again shortly.") from exc
 
         raise AssistantError("The request needed too many steps. Please try a more specific message.")

@@ -4,7 +4,6 @@ from decimal import Decimal
 from flask import (
     Blueprint,
     abort,
-    current_app,
     flash,
     redirect,
     render_template,
@@ -15,13 +14,14 @@ from flask import (
 from flask_login import current_user, login_required
 
 from app.extensions import db
-from app.forms.invoice_forms import InvoiceForm
+from app.forms.invoice_forms import InvoiceForm, QuickInvoiceForm
 from app.models.invoice import Invoice
 from app.models.invoice_item import InvoiceItem
 from app.models.customer import Customer
 from app.models.product import Product
 from app.models.invoice import generate_invoice_number
 from app.services.inventory_service import reduce_stock
+from app.services.invoice_service import get_company_config
 from app.services.pdf_service import generate_invoice_pdf
 from app.services.email_service import send_invoice_email
 from urllib.parse import quote
@@ -97,7 +97,6 @@ def create_invoice():
     form.currency.data = "INR"
     form.terms.data = "30 Days"
     form.notes.data = "Thank you for your business."
-    form.discount.data = Decimal("0.00")
 
     if form.validate_on_submit():
 
@@ -145,6 +144,92 @@ def create_invoice():
         products=_product_price_data(),
         customers=_customer_preview_data(),
     )
+
+
+@invoices_bp.route("/quick", methods=["GET", "POST"])
+@login_required
+def quick_invoice():
+    form = QuickInvoiceForm(user_id=current_user.id, invoice_date=date.today(), status="Unpaid")
+
+    if form.validate_on_submit():
+        customer = _find_or_create_customer(
+            form.customer_name.data,
+            form.customer_phone.data,
+            form.customer_email.data,
+        )
+
+        invoice = Invoice(created_by_id=current_user.id)
+        invoice.invoice_number = generate_invoice_number("INV")
+        invoice.invoice_date = form.invoice_date.data
+        invoice.status = form.status.data
+        invoice.discount = form.discount.data or Decimal("0.00")
+        invoice.currency = "INR"
+        invoice.terms = "30 Days"
+        invoice.notes = "Thank you for your business."
+
+        _replace_quick_items(invoice, form)
+
+        invoice.recalculate_totals()
+
+        db.session.add(invoice)
+        invoice.customer = customer
+
+        try:
+            if invoice.status != "Draft":
+                reduce_stock(invoice)
+            db.session.commit()
+            flash("Invoice generated successfully.", "success")
+            return redirect(url_for("invoices.invoice_detail", invoice_id=invoice.id))
+        except ValueError as e:
+            db.session.rollback()
+            flash(str(e), "danger")
+
+    return render_template(
+        "invoices/quick_invoice.html",
+        form=form,
+        products=_product_price_data(),
+        customers=_customer_preview_data(),
+    )
+
+
+def _find_or_create_customer(name, phone, email):
+    name = (name or "").strip()
+    phone = (phone or "").strip()
+    email = (email or "").strip().lower()
+
+    customer = None
+    if phone:
+        customer = Customer.query.filter_by(user_id=current_user.id, phone=phone).first()
+    if customer is None and name:
+        customer = Customer.query.filter_by(user_id=current_user.id, name=name).first()
+
+    if customer is not None:
+        if phone and not customer.phone:
+            customer.phone = phone
+        if email and not customer.email:
+            customer.email = email
+        return customer
+
+    customer = Customer(user_id=current_user.id, name=name, phone=phone or None, email=email or None)
+    db.session.add(customer)
+    return customer
+
+
+def _replace_quick_items(invoice, form):
+    for entry in form.items.entries:
+        product = db.session.get(Product, entry.form.product_id.data)
+        invoice.items.append(
+            InvoiceItem(
+                product=product,
+                quantity=entry.form.quantity.data,
+                unit_price=entry.form.unit_price.data or product.selling_price,
+                tax_percentage=entry.form.tax_percentage.data
+                if entry.form.tax_percentage.data is not None
+                else product.tax_percentage,
+            )
+        )
+
+
 @invoices_bp.get("/<int:invoice_id>")
 @login_required
 def invoice_detail(invoice_id):
@@ -161,11 +246,7 @@ def invoice_detail(invoice_id):
 def download_invoice_pdf(invoice_id):
     invoice = _owned_invoice_or_404(invoice_id)
 
-    company = {
-        "name": current_app.config["COMPANY_NAME"],
-        "address": current_app.config["COMPANY_ADDRESS"],
-        "gst_number": current_app.config["COMPANY_GST_NUMBER"],
-    }
+    company = get_company_config(current_user)
 
     return send_file(
         generate_invoice_pdf(invoice, company),
@@ -180,11 +261,7 @@ def send_invoice(invoice_id):
 
     invoice = _owned_invoice_or_404(invoice_id)
 
-    company = {
-        "name": current_app.config["COMPANY_NAME"],
-        "address": current_app.config["COMPANY_ADDRESS"],
-        "gst_number": current_app.config["COMPANY_GST_NUMBER"],
-    }
+    company = get_company_config(current_user)
 
     try:
         send_invoice_email(invoice, company)

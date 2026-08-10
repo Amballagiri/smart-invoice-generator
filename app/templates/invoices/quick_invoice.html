@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Create invoice · Smart Invoice{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/quick_invoice.css') }}">
+<script defer src="{{ url_for('static', filename='js/quick_invoice.js') }}"></script>
+{% endblock %}
+{% block content %}
+<section class="quick-invoice">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">NEW INVOICE</span>
+      <h1>Create invoice</h1>
+      <p class="text-muted mb-0">Enter the customer, add items, and generate the invoice.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('main.dashboard') }}"><i class="bi bi-grid-1x2 me-1"></i> Dashboard</a>
+  </header>
+
+  <form method="post" id="quick-invoice-form" class="quick-grid" data-products='{{ products|tojson }}' data-customers='{{ customers|tojson }}'>
+    {{ form.hidden_tag() }}
+
+    <div class="quick-main">
+      <section class="quick-card">
+        <div class="quick-card-title">
+          <span class="section-icon"><i class="bi bi-person"></i></span>
+          <div>
+            <h2>Customer</h2>
+            <p>Start typing a name or phone number to reuse a saved customer.</p>
+          </div>
+        </div>
+
+        <div class="quick-fields">
+          <div>
+            <label class="form-label" for="customer_name">Name</label>
+            {{ form.customer_name(class="form-control", id="customer_name", list="customer-datalist", placeholder="Search or type a new customer", autocomplete="off") }}
+            <datalist id="customer-datalist"></datalist>
+            {% for e in form.customer_name.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="form-label" for="customer_phone">Phone</label>
+              {{ form.customer_phone(class="form-control", id="customer_phone", placeholder="Phone (optional)") }}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label" for="customer_email">Email</label>
+              {{ form.customer_email(class="form-control", id="customer_email", placeholder="Email (optional)") }}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="quick-card">
+        <div class="quick-card-title">
+          <span class="section-icon"><i class="bi bi-list-check"></i></span>
+          <div>
+            <h2>Items</h2>
+            <p>Pick products from your catalogue or add one on the spot.</p>
+          </div>
+          <div class="quick-product-tools">
+            <div class="product-search">
+              <i class="bi bi-search"></i>
+              <input type="search" id="product-filter" class="form-control" placeholder="Search product" aria-label="Search products">
+            </div>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="quick-add-product-btn">
+              <i class="bi bi-plus-lg me-1"></i> Add product
+            </button>
+          </div>
+        </div>
+
+        <div class="quick-table-wrap">
+          <table class="quick-table">
+            <thead>
+              <tr>
+                <th class="product-col">Product</th>
+                <th class="qty-col">Qty</th>
+                <th class="price-col">Price</th>
+                <th class="tax-col">GST %</th>
+                <th class="amount-col text-end">Amount</th>
+                <th class="remove-col"></th>
+              </tr>
+            </thead>
+            <tbody id="quick-items">
+              {% for item in form.items %}
+              <tr class="quick-item">
+                <td data-label="Product">{{ item.form.product_id(class="form-select product-select") }}</td>
+                <td data-label="Qty">{{ item.form.quantity(class="form-control quantity-input", min="0.001", step="0.001", placeholder="0") }}</td>
+                <td data-label="Price">{{ item.form.unit_price(class="form-control price-input", min="0.01", step="0.01", placeholder="0.00") }}</td>
+                <td data-label="GST">{{ item.form.tax_percentage(class="form-control tax-input", min="0", max="100", step="0.01", placeholder="0") }}</td>
+                <td data-label="Amount" class="line-total text-end">₹0.00</td>
+                <td data-label="">
+                  <button type="button" class="remove-quick-item" aria-label="Remove item"><i class="bi bi-trash3"></i></button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <button type="button" class="btn btn-outline-primary" id="add-quick-item">
+          <i class="bi bi-plus-lg"></i> Add item
+        </button>
+      </section>
+    </div>
+
+    <aside class="quick-aside">
+      <section class="quick-card">
+        <div class="quick-card-title">
+          <span class="section-icon"><i class="bi bi-receipt"></i></span>
+          <div><h2>Invoice</h2><p>Date, status and discount.</p></div>
+        </div>
+        <div class="quick-fields">
+          <div>
+            {{ form.invoice_date.label(class="form-label") }}
+            {{ form.invoice_date(class="form-control", id="invoice_date") }}
+          </div>
+          <div>
+            {{ form.status.label(class="form-label") }}
+            {{ form.status(class="form-select", id="status") }}
+          </div>
+          <div>
+            {{ form.discount.label(class="form-label") }}
+            <div class="input-group">
+              {{ form.discount(class="form-control", min="0", step="0.01", id="discount") }}
+              <span class="input-group-text">₹</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="quick-card totals-card">
+        <dl class="quick-totals">
+          <div><dt>Subtotal</dt><dd id="q-subtotal">₹0.00</dd></div>
+          <div><dt>GST</dt><dd id="q-gst">₹0.00</dd></div>
+          <div><dt>Discount</dt><dd id="q-discount">₹0.00</dd></div>
+          <div><dt>Round off</dt><dd id="q-round">₹0.00</dd></div>
+          <div class="grand-total-row"><dt>Grand total</dt><dd id="q-grand">₹0.00</dd></div>
+        </dl>
+        {{ form.submit(class="btn btn-primary btn-generate", id="generate-btn") }}
+      </section>
+    </aside>
+  </form>
+</section>
+
+<div class="modal fade" id="quickProductModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="quick-product-form">
+        <div class="modal-header">
+          <h5 class="modal-title">Add product</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="mb-3">
+            <label class="form-label">Product name</label>
+            <input class="form-control" name="name" required placeholder="e.g. Rice 5kg">
+          </div>
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label">Price (₹)</label>
+              <input class="form-control" name="selling_price" type="number" min="0" step="0.01" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label">GST %</label>
+              <input class="form-control" name="tax_percentage" type="number" min="0" max="100" step="0.01" value="0">
+            </div>
+          </div>
+          <div class="mt-3">
+            <label class="form-label">Stock (optional)</label>
+            <input class="form-control" name="current_stock" type="number" min="0" step="1" value="0">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

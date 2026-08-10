@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}About · Smart Invoice{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}">{% endblock %}
+{% block content %}
+<section class="about-page">
+  <header class="settings-hero"><div><span class="eyebrow">ABOUT</span><h1>Smart Invoice Generator</h1><p>A simple and efficient invoice and business management solution for small businesses.</p></div><span class="settings-hero-icon"><i class="bi bi-info-circle"></i></span></header>
+
+  <section class="about-card">
+    <div class="about-section-heading"><span class="settings-icon appearance"><i class="bi bi-stars"></i></span><div><h2>Features</h2><p>Everything you need to run your business.</p></div></div>
+    <ul class="about-features">
+      <li><i class="bi bi-receipt"></i> Create and manage invoices</li>
+      <li><i class="bi bi-people"></i> Customer management</li>
+      <li><i class="bi bi-box-seam"></i> Product and inventory management</li>
+      <li><i class="bi bi-percent"></i> GST and discount calculations</li>
+      <li><i class="bi bi-file-earmark-pdf"></i> PDF invoice generation</li>
+      <li><i class="bi bi-envelope"></i> Email invoices</li>
+      <li><i class="bi bi-whatsapp"></i> WhatsApp invoice sharing</li>
+      <li><i class="bi bi-robot"></i> Smart Invoice AI Assistant</li>
+      <li><i class="bi bi-bar-chart"></i> Business dashboard and reports</li>
+    </ul>
+  </section>
+
+  <section class="about-card">
+    <div class="about-section-heading"><span class="settings-icon company"><i class="bi bi-code-slash"></i></span><div><h2>Developer</h2><p>Built with care for small businesses.</p></div></div>
+    <p class="about-developer">Designed &amp; Developed by <strong>Amballa Giri</strong></p>
+    <p class="about-instagram-label">Instagram</p>
+    <a class="about-instagram" href="https://www.instagram.com/giri_79189" target="_blank" rel="noopener noreferrer"><i class="bi bi-instagram"></i> @giri_79189</a>
+  </section>
+
+  <section class="about-meta">
+    <span>Version <strong>1.0.0</strong></span>
+    <span>© 2026 Smart Invoice Generator</span>
+  </section>
+</section>
+{% endblock %}

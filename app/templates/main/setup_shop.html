@@ -1,0 +1,54 @@
+{% extends "base.html" %}{% block title %}Set up your shop · Smart Invoice{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7 col-xl-6">
+    <div class="page-header text-center mb-4">
+      <span class="eyebrow">ONE-TIME SETUP</span>
+      <h1>Set up your shop</h1>
+      <p class="text-muted">Enter your shop details once. They will appear on every invoice automatically.</p>
+    </div>
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4 p-md-5">
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {{ form.hidden_tag() }}
+          <div class="mb-3">
+            {{ form.shop_name.label(class="form-label") }}
+            {{ form.shop_name(class="form-control", placeholder="e.g. Sharma General Store") }}
+            {% for e in form.shop_name.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ form.address.label(class="form-label") }}
+            {{ form.address(class="form-control", rows="3", placeholder="Shop address") }}
+            {% for e in form.address.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6 mb-3">
+              {{ form.phone.label(class="form-label") }}
+              {{ form.phone(class="form-control", placeholder="Phone number") }}
+              {% for e in form.phone.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6 mb-3">
+              {{ form.email.label(class="form-label") }}
+              {{ form.email(class="form-control", placeholder="you@shop.com") }}
+              {% for e in form.email.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6 mb-3">
+              {{ form.gst_number.label(class="form-label") }}
+              {{ form.gst_number(class="form-control", placeholder="Optional") }}
+              {% for e in form.gst_number.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6 mb-3">
+              {{ form.logo.label(class="form-label") }}
+              {{ form.logo(class="form-control") }}
+              {% for e in form.logo.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+            </div>
+          </div>
+          {{ form.submit(class="btn btn-primary btn-lg w-100") }}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

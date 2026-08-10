@@ -20,8 +20,11 @@ class Config:
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAX_CONTENT_LENGTH = 2 * 1024 * 1024
+    AI_PROVIDER = os.environ.get("AI_PROVIDER", "openai").strip().lower()
     OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
     OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-5")
+    OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
+    OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "openrouter/free")
 
     COMPANY_NAME = os.environ.get(
         "COMPANY_NAME",

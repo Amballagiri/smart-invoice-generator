@@ -1,6 +1,9 @@
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import or_
+from decimal import Decimal
+from uuid import uuid4
+import re
 
 from app.extensions import db
 from app.forms.product_forms import ProductForm
@@ -82,6 +85,73 @@ def delete_product(product_id):
     db.session.commit()
     flash("Product deleted successfully.", "info")
     return redirect(url_for("products.list_products"))
+
+
+@products_bp.post("/quick-add")
+@login_required
+def quick_add_product():
+    name = (request.form.get("name") or "").strip()
+    if not name:
+        return jsonify({"ok": False, "error": "Product name is required."}), 400
+
+    def _num(key, default):
+        try:
+            return Decimal(str(request.form.get(key) or default))
+        except Exception:
+            raise ValueError("invalid number")
+
+    try:
+        selling_price = _num("selling_price", 0)
+        tax_percentage = _num("tax_percentage", 0)
+        current_stock = int(Decimal(str(request.form.get("current_stock") or 0)))
+    except Exception:
+        return jsonify({"ok": False, "error": "Enter a valid price, GST and stock."}), 400
+
+    if selling_price < 0 or tax_percentage < 0 or tax_percentage > 100 or current_stock < 0:
+        return jsonify({"ok": False, "error": "Price, GST and stock must be valid."}), 400
+
+    existing = Product.query.filter(
+        db.func.lower(Product.name) == name.lower(),
+        Product.user_id == current_user.id,
+    ).first()
+
+    if existing is not None:
+        return jsonify({
+            "ok": True,
+            "created": False,
+            "id": existing.id,
+            "name": existing.name,
+            "sku": existing.sku,
+            "price": float(existing.selling_price),
+            "tax": float(existing.tax_percentage),
+        })
+
+    sku = f"Q-{re.sub(r'[^A-Z0-9]', '', name.upper())[:20]}-{uuid4().hex[:6].upper()}"
+    product = Product(
+        user_id=current_user.id,
+        name=name,
+        sku=sku,
+        category=None,
+        cost_price=Decimal("0.00"),
+        selling_price=selling_price,
+        tax_percentage=tax_percentage,
+        current_stock=current_stock,
+        unit="Piece",
+        low_stock_alert_level=0,
+        is_active=True,
+    )
+    db.session.add(product)
+    db.session.commit()
+
+    return jsonify({
+        "ok": True,
+        "created": True,
+        "id": product.id,
+        "name": product.name,
+        "sku": product.sku,
+        "price": float(product.selling_price),
+        "tax": float(product.tax_percentage),
+    })
 
 
 @products_bp.route("/<int:product_id>/restock", methods=["GET", "POST"])

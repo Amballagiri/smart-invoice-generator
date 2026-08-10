@@ -4,16 +4,20 @@ from uuid import uuid4
 
 from flask import Blueprint, current_app, flash, redirect, render_template, url_for, request
 from flask_login import login_required, current_user
+from sqlalchemy import or_
 from PIL import Image, ImageOps
 from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import RequestEntityTooLarge
 
 from app.extensions import db
 from app.forms.profile_forms import ChangePasswordForm, ProfileForm
-from app.forms.company_forms import CompanyForm
+from app.forms.company_forms import CompanyForm, ShopSetupForm
 import json
 from flask import jsonify
 from app.models.notification import Notification
+from app.models.shop_profile import ShopProfile
+from app.models.customer import Customer
+from app.models.invoice import Invoice
 from app.services.notification_service import mark_read, mark_all_read, clear_all, create_notification
 from datetime import date
 
@@ -22,6 +26,20 @@ main_bp = Blueprint("main", __name__)
 
 PROFILE_IMAGE_SIZE = (300, 300)
 PROFILE_IMAGE_QUALITY = 82
+LOGO_IMAGE_SIZE = (512, 512)
+LOGO_IMAGE_QUALITY = 85
+
+
+def shop_is_configured():
+    """True when the current user has saved shop details."""
+    return getattr(current_user, "shop_profile", None) is not None
+
+
+def home_redirect():
+    """Landing after login: setup once, then the invoice screen."""
+    if not shop_is_configured():
+        return redirect(url_for("main.setup_shop"))
+    return redirect(url_for("invoices.quick_invoice"))
 
 
 @main_bp.route("/")
@@ -101,6 +119,17 @@ def edit_profile():
     return render_template("main/edit_profile.html", form=form)
 
 
+@main_bp.post("/profile/photo/remove")
+@login_required
+def profile_photo_remove():
+    previous_image = current_user.profile_image
+    current_user.profile_image = None
+    db.session.commit()
+    _delete_custom_profile_image(previous_image)
+    flash("Your profile photo has been removed.", "success")
+    return redirect(url_for("main.profile"))
+
+
 @main_bp.route("/profile/password", methods=["GET", "POST"])
 @login_required
 def change_password():
@@ -129,6 +158,13 @@ def settings():
         "main/settings.html",
          company=company,
     )
+
+
+@main_bp.get("/about")
+@login_required
+def about():
+    return render_template("main/about.html")
+
 
 @main_bp.route("/company", methods=["GET", "POST"])
 @login_required
@@ -183,6 +219,44 @@ def company():
 
     # Default: view-only
     return render_template("main/company.html", company=company)
+
+
+@main_bp.route("/setup", methods=["GET", "POST"])
+@login_required
+def setup_shop():
+    form = ShopSetupForm()
+
+    if form.validate_on_submit():
+        profile = current_user.shop_profile
+        if profile is None:
+            profile = ShopProfile(user_id=current_user.id)
+            db.session.add(profile)
+
+        profile.shop_name = form.shop_name.data.strip()
+        profile.address = form.address.data.strip() if form.address.data else None
+        profile.phone = form.phone.data.strip() if form.phone.data else None
+        profile.email = form.email.data.strip().lower() if form.email.data else None
+        profile.gst_number = form.gst_number.data.strip() if form.gst_number.data else None
+
+        if isinstance(form.logo.data, FileStorage):
+            previous = profile.logo
+            profile.logo = _save_shop_logo(form.logo.data, current_user.id)
+            if previous and previous != profile.logo:
+                _delete_shop_logo(previous)
+
+        db.session.commit()
+        flash("Your shop has been set up. Create your first invoice.", "success")
+        return redirect(url_for("invoices.quick_invoice"))
+
+    if request.method == "GET" and current_user.shop_profile is not None:
+        form.shop_name.data = current_user.shop_profile.shop_name
+        form.address.data = current_user.shop_profile.address
+        form.phone.data = current_user.shop_profile.phone
+        form.email.data = current_user.shop_profile.email
+        form.gst_number.data = current_user.shop_profile.gst_number
+
+    return render_template("main/setup_shop.html", form=form)
+
 
 
 @main_bp.get("/notifications")
@@ -249,6 +323,51 @@ def notifications_clear():
     return jsonify({"ok": True})
 
 
+@main_bp.get("/search")
+@login_required
+def global_search():
+    query = request.args.get("q", "", type=str).strip()
+    results = []
+
+    if query:
+        pattern = f"%{query}%"
+        customers = (
+            Customer.query.filter_by(user_id=current_user.id)
+            .filter(
+                or_(
+                    Customer.name.ilike(pattern),
+                    Customer.email.ilike(pattern),
+                    Customer.phone.ilike(pattern),
+                )
+            )
+            .order_by(Customer.name.asc())
+            .limit(5)
+            .all()
+        )
+        for customer in customers:
+            results.append({
+                "type": "customer",
+                "label": customer.name,
+                "url": url_for("customers.edit_customer", customer_id=customer.id),
+            })
+
+        invoices = (
+            Invoice.query.filter_by(created_by_id=current_user.id)
+            .filter(Invoice.invoice_number.ilike(pattern))
+            .order_by(Invoice.invoice_date.desc(), Invoice.id.desc())
+            .limit(5)
+            .all()
+        )
+        for invoice in invoices:
+            results.append({
+                "type": "invoice",
+                "label": invoice.invoice_number,
+                "url": url_for("invoices.invoice_detail", invoice_id=invoice.id),
+            })
+
+    return jsonify({"ok": True, "results": results})
+
+
 @main_bp.get("/reports")
 @login_required
 def reports():
@@ -280,6 +399,33 @@ def _delete_custom_profile_image(image_path):
         return
 
     upload_directory = (Path(current_app.static_folder) / "uploads" / "profiles").resolve()
+    candidate = (Path(current_app.static_folder) / image_path).resolve()
+    if candidate.is_relative_to(upload_directory) and candidate.is_file():
+        candidate.unlink()
+
+
+def _save_shop_logo(upload, user_id):
+    upload_directory = Path(current_app.static_folder) / "uploads" / "logos"
+    upload_directory.mkdir(parents=True, exist_ok=True)
+    filename = f"{user_id}-{uuid4().hex}.webp"
+    destination = upload_directory / filename
+
+    with Image.open(upload.stream) as image:
+        normalized = ImageOps.fit(
+            image.convert("RGB"),
+            LOGO_IMAGE_SIZE,
+            method=Image.Resampling.LANCZOS,
+        )
+        normalized.save(destination, "WEBP", quality=LOGO_IMAGE_QUALITY, method=6)
+    upload.stream.seek(0)
+    return f"uploads/logos/{filename}"
+
+
+def _delete_shop_logo(image_path):
+    if not image_path or not image_path.startswith("uploads/logos/"):
+        return
+
+    upload_directory = (Path(current_app.static_folder) / "uploads" / "logos").resolve()
     candidate = (Path(current_app.static_folder) / image_path).resolve()
     if candidate.is_relative_to(upload_directory) and candidate.is_file():
         candidate.unlink()

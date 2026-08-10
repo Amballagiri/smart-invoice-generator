@@ -93,7 +93,7 @@
 
                     <div class="form-options">
                         <label class="remember"><input type="checkbox" name="remember" value="1"><span></span>Remember me</label>
-                        <a href="#" aria-label="Reset your password">Forgot password?</a>
+                        <a href="{{ url_for('auth.forgot_password') }}" aria-label="Reset your password">Forgot password?</a>
                     </div>
 
                     {{ form.submit(class="btn login-submit") }}

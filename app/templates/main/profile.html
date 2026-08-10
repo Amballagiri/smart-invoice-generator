@@ -21,7 +21,12 @@
     <p class="profile-email">{{ current_user.email }}</p>
     <div class="profile-photo-actions">
       <a class="btn btn-primary" href="{{ url_for('main.edit_profile') }}"><i class="bi bi-camera me-1"></i> Change Photo</a>
-      <button class="btn btn-outline-secondary" type="button" disabled title="Photo removal is not available yet"><i class="bi bi-trash3 me-1"></i> Remove Photo</button>
+      {% if current_user.profile_image %}
+      <form method="post" action="{{ url_for('main.profile_photo_remove') }}" class="d-inline" onsubmit="return confirm('Remove your profile photo?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-trash3 me-1"></i> Remove Photo</button>
+      </form>
+      {% endif %}
     </div>
   </section>
 

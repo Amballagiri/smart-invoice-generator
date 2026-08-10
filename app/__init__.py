@@ -44,6 +44,7 @@ def create_app(test_config=None):
         Product,
         User,
         Notification,
+        ShopProfile,
     )
 
     from app.routes.auth import auth_bp

@@ -13,10 +13,18 @@ class Config:
         "change-this-development-secret"
     )
 
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
+    _database_url = os.environ.get(
         "DATABASE_URL",
         f"sqlite:///{BASE_DIR / 'instance' / 'smart_invoice.db'}"
     )
+
+    # Render exposes PostgreSQL as "postgres://", which SQLAlchemy 2.x + psycopg2
+    # does not accept. Normalize to "postgresql://" while leaving SQLite/local
+    # URIs untouched.
+    if _database_url.startswith("postgres://"):
+        _database_url = "postgresql://" + _database_url[len("postgres://"):]
+
+    SQLALCHEMY_DATABASE_URI = _database_url
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAX_CONTENT_LENGTH = 2 * 1024 * 1024

@@ -36,15 +36,23 @@ def shop_is_configured():
 
 
 def home_redirect():
-    """Landing after login: setup once, then the invoice screen."""
+    """Landing after login: onboard new users, then the dashboard overview."""
     if not shop_is_configured():
         return redirect(url_for("main.setup_shop"))
-    return redirect(url_for("invoices.quick_invoice"))
+    return redirect(url_for("main.dashboard"))
 
 
 @main_bp.route("/")
 @login_required
 def dashboard():
+
+    hour = datetime.now().hour
+    if hour < 12:
+        greeting = "Good morning"
+    elif hour < 17:
+        greeting = "Good afternoon"
+    else:
+        greeting = "Good evening"
 
     total_customers = len(current_user.customers)
 
@@ -80,6 +88,7 @@ def dashboard():
 
     return render_template(
         "main/dashboard.html",
+        greeting=greeting,
         total_customers=total_customers,
         total_products=total_products,
         total_invoices=total_invoices,

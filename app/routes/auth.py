@@ -41,7 +41,7 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data.strip().lower()).first()
         if user and user.check_password(form.password.data):
-            login_user(user)
+            login_user(user, remember=bool(request.form.get("remember")))
             flash("Welcome back! You are now logged in.", "success")
             next_page = request.args.get("next")
             if next_page and _is_safe_next_url(next_page):

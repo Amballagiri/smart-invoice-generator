@@ -56,6 +56,10 @@ class Config:
         "29ABCDE1234F1Z5"
     )
 
+    COMPANY_EMAIL = os.environ.get("COMPANY_EMAIL")
+
+    COMPANY_PHONE = os.environ.get("COMPANY_PHONE")
+
     # ---------------- MAIL ----------------
 
     MAIL_SERVER = os.environ.get("MAIL_SERVER")

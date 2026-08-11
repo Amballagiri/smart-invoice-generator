@@ -212,10 +212,16 @@
   vertical-align: top;
 }
 
-.builder-table .form-control,
-.builder-table .form-select {
+.builder-table .form-control {
   min-height: 44px;
   padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  width: 100%;
+}
+.builder-table .form-select {
+  min-height: 44px;
+  padding: 10px 2.6rem 10px 12px;
   border-radius: 12px;
   font-size: 0.92rem;
   width: 100%;

@@ -217,3 +217,40 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// Smooth page-transition cover for internal GET navigation (no routing change).
+document.addEventListener('DOMContentLoaded', () => {
+  const overlay = document.getElementById('pageTransitionOverlay');
+  const isAppShell = document.querySelector('.app-content') != null;
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const transitionKey = 'smart-invoice-transition';
+
+  const clearFlag = () => {
+    try { sessionStorage.removeItem(transitionKey); } catch (e) {}
+  };
+
+  if (isAppShell && !reducedMotion && overlay) {
+    document.addEventListener('click', (event) => {
+      if (event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const anchor = event.target.closest('a');
+      if (!anchor || anchor.closest('form')) return;
+      if (anchor.target && anchor.target !== '_self') return;
+      if (anchor.hasAttribute('download')) return;
+      if (anchor.getAttribute('rel') === 'external') return;
+      const href = anchor.getAttribute('href');
+      if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+      if (href.startsWith('mailto:') || href.startsWith('tel:')) return;
+      if (href.indexOf('/auth/logout') !== -1) return;
+      let url;
+      try { url = new URL(anchor.href, window.location.origin); } catch (e) { return; }
+      if (url.origin !== window.location.origin) return;
+      try { sessionStorage.setItem(transitionKey, '1'); } catch (e) {}
+    }, true);
+  }
+
+  window.addEventListener('pageshow', (event) => {
+    clearFlag();
+    if (event.persisted && overlay) overlay.classList.remove('is-active');
+  });
+});

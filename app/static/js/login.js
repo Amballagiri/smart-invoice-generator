@@ -75,6 +75,20 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('appSidebar')?.classList.toggle('is-open');
   });
 
+  const appSidebar = document.getElementById('appSidebar');
+  const sidebarToggle = document.querySelector('[data-sidebar-toggle]');
+  const isMobileSidebar = window.matchMedia('(max-width: 991.98px)');
+
+  document.addEventListener('click', (event) => {
+    if (!isMobileSidebar.matches) return;
+    if (!appSidebar || !appSidebar.classList.contains('is-open')) return;
+    const clickedInside = appSidebar.contains(event.target);
+    const clickedToggle = sidebarToggle && sidebarToggle.contains(event.target);
+    if (!clickedInside && !clickedToggle) {
+      appSidebar.classList.remove('is-open');
+    }
+  });
+
   document.querySelector('[data-current-date]')?.append(
     new Intl.DateTimeFormat(undefined, { weekday: 'short', month: 'short', day: 'numeric' }).format(new Date())
   );

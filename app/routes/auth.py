@@ -3,7 +3,7 @@ from urllib.parse import urljoin, urlparse
 from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
 
-from app.extensions import csrf, db
+from app.extensions import csrf, db, oauth
 from app.forms.auth_forms import ForgotPasswordForm, LoginForm, RegistrationForm, ResetPasswordForm
 from app.models.user import User
 from app.routes.main import home_redirect
@@ -93,3 +93,68 @@ def logout():
         logout_user()
         flash("You have been logged out.", "info")
     return redirect(url_for("auth.login"))
+
+
+def _unique_username(base):
+    """Return a unique username derived from base, appending numbers as needed."""
+    candidate = base.strip() or "user"
+    if not User.query.filter_by(username=candidate).first():
+        return candidate
+    i = 1
+    while True:
+        candidate = f"{base.strip()[:50]}{i}"
+        if not User.query.filter_by(username=candidate).first():
+            return candidate
+        i += 1
+
+
+@auth_bp.route("/google")
+def google_login():
+    if current_user.is_authenticated:
+        return redirect(url_for("main.dashboard"))
+    if not current_app.config.get("GOOGLE_CLIENT_ID") or not current_app.config.get(
+        "GOOGLE_CLIENT_SECRET"
+    ):
+        flash("Google sign-in is not configured.", "danger")
+        return redirect(url_for("auth.login"))
+    redirect_uri = current_app.config.get("GOOGLE_REDIRECT_URI") or url_for(
+        "auth.google_callback", _external=True
+    )
+    return oauth.google.authorize_redirect(redirect_uri)
+
+
+@auth_bp.route("/google/callback")
+def google_callback():
+    try:
+        token = oauth.google.authorize_access_token()
+    except Exception:
+        current_app.logger.exception("Google OAuth authorization failed")
+        flash("Google sign-in could not be completed.", "danger")
+        return redirect(url_for("auth.login"))
+
+    userinfo = oauth.google.userinfo()
+    if not userinfo.get("email_verified"):
+        flash("Your Google email is not verified.", "danger")
+        return redirect(url_for("auth.login"))
+
+    email = (userinfo.get("email") or "").strip().lower()
+    sub = userinfo.get("sub")
+    if not email or not sub:
+        flash("Google sign-in returned incomplete profile information.", "danger")
+        return redirect(url_for("auth.login"))
+
+    user = User.query.filter_by(google_sub=sub).first()
+    if user is None:
+        user = User.query.filter_by(email=email).first()
+        if user is None:
+            user = User(username=_unique_username(email.split("@")[0]), email=email)
+            db.session.add(user)
+        user.google_sub = sub
+
+    db.session.commit()
+    login_user(user)
+    flash("You are now logged in.", "success")
+    next_page = request.args.get("next")
+    if next_page and _is_safe_next_url(next_page):
+        return redirect(next_page)
+    return home_redirect()

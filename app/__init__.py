@@ -3,7 +3,7 @@ from pathlib import Path
 from flask import Flask
 
 from app.config import Config
-from app.extensions import csrf, db, login_manager, mail, migrate
+from app.extensions import csrf, db, login_manager, mail, migrate, oauth
 
 
 def create_app(test_config=None):
@@ -34,6 +34,15 @@ def create_app(test_config=None):
     login_manager.init_app(app)
     mail.init_app(app)
     csrf.init_app(app)
+    oauth.init_app(app)
+
+    oauth.register(
+        name="google",
+        client_id=app.config.get("GOOGLE_CLIENT_ID"),
+        client_secret=app.config.get("GOOGLE_CLIENT_SECRET"),
+        server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+        client_kwargs={"scope": "openid profile email"},
+    )
 
     from app.models import (
         AIConversation,

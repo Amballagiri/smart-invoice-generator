@@ -34,6 +34,13 @@ class Config:
     OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
     OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "openrouter/free")
 
+    # ---------------- GOOGLE OAUTH ----------------
+
+    GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
+    # Optional override. When unset, the callback is built from the request host.
+    GOOGLE_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI")
+
     COMPANY_NAME = os.environ.get(
         "COMPANY_NAME",
         "Smart Invoice Generator"

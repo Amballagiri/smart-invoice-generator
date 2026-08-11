@@ -12,8 +12,9 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False, index=True)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
-    password_hash = db.Column(db.String(256), nullable=False)
+    password_hash = db.Column(db.String(256), nullable=True)
     profile_image = db.Column(db.String(255), nullable=True)
+    google_sub = db.Column(db.String(255), unique=True, nullable=True, index=True)
     customers = db.relationship("Customer", back_populates="user", cascade="all, delete-orphan")
     products = db.relationship("Product", back_populates="user", cascade="all, delete-orphan")
     invoices = db.relationship("Invoice", back_populates="created_by", cascade="all, delete-orphan")
@@ -35,6 +36,8 @@ class User(UserMixin, db.Model):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
+        if not self.password_hash:
+            return False
         return check_password_hash(self.password_hash, password)
 
     def get_reset_password_token(self):

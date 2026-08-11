@@ -100,7 +100,7 @@
                 </form>
 
                 <div class="divider"><span>or continue with</span></div>
-                <button class="google-button" type="button"><span class="google-g">G</span> Google</button>
+                <a class="google-button" href="{{ url_for('auth.google_login') }}"><span class="google-g">G</span> Google</a>
                 <p class="register-prompt">New to Smart Invoice? <a href="{{ url_for('auth.register') }}">Create an account</a></p>
             </div>
         </section>

@@ -1,0 +1,206 @@
+/* ============================================================================
+   Smart Invoice — centralized DARK theme layer
+   Loaded last (after page-specific CSS) so it reliably overrides any
+   hardcoded light colors. Every rule is scoped under [data-bs-theme="dark"]
+   so LIGHT mode is never affected. The purple brand palette is preserved.
+   ============================================================================ */
+
+/* --- Page-local variable overrides (Customers CRM) ------------------------ */
+[data-bs-theme="dark"]{
+    --crm-surface:#191c36;
+    --crm-surface-soft:#202342;
+    --crm-shadow:0 24px 48px rgba(0,0,0,.3);
+    --crm-border:rgba(124,110,255,.16);
+    --crm-muted:#aab0cd;
+    --crm-soft:#252852;
+}
+
+/* --- Bootstrap components -------------------------------------------------- */
+[data-bs-theme="dark"] .dropdown-menu,
+[data-bs-theme="dark"] .dropdown-item{
+    color:var(--text);
+}
+[data-bs-theme="dark"] .dropdown-menu{
+    background:var(--surface-2);
+    border-color:var(--border);
+}
+[data-bs-theme="dark"] .dropdown-item{
+    color:var(--text);
+}
+[data-bs-theme="dark"] .dropdown-item:hover,
+[data-bs-theme="dark"] .dropdown-item:focus{
+    color:var(--text);
+    background:var(--surface-soft);
+}
+[data-bs-theme="dark"] .dropdown-divider{
+    border-color:var(--border);
+}
+
+[data-bs-theme="dark"] .modal-content{
+    background:var(--surface);
+    color:var(--text);
+    border-color:var(--border);
+}
+[data-bs-theme="dark"] .modal-header,
+[data-bs-theme="dark"] .modal-footer{
+    border-color:var(--border);
+}
+[data-bs-theme="dark"] .modal-title{
+    color:var(--text);
+}
+[data-bs-theme="dark"] .btn-close{
+    filter:invert(1) grayscale(100%) brightness(200%);
+}
+
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select{
+    color:var(--input-text);
+    background-color:var(--input-bg);
+}
+[data-bs-theme="dark"] .form-control::placeholder{
+    color:var(--text-muted);
+    opacity:.85;
+}
+[data-bs-theme="dark"] .input-group-text{
+    color:var(--text);
+    background:var(--surface-soft);
+    border-color:var(--border);
+}
+[data-bs-theme="dark"] .form-select{
+    background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23aab0cd' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+[data-bs-theme="dark"] .accordion-button{
+    color:var(--text);
+    background:var(--surface);
+}
+[data-bs-theme="dark"] .accordion-button:not(.collapsed){
+    color:var(--primary);
+    background:var(--surface-soft);
+}
+[data-bs-theme="dark"] .accordion-item{
+    background:var(--surface);
+    border-color:var(--border);
+}
+
+[data-bs-theme="dark"] .list-group-item{
+    color:var(--text);
+    background:var(--surface);
+    border-color:var(--border);
+}
+[data-bs-theme="dark"] .list-group-item:hover{
+    background:var(--surface-soft);
+}
+
+[data-bs-theme="dark"] .text-secondary{color:var(--text-muted)!important;}
+[data-bs-theme="dark"] .text-dark{color:var(--text)!important;}
+[data-bs-theme="dark"] .bg-white{background-color:var(--surface)!important;}
+[data-bs-theme="dark"] .bg-light{background-color:var(--surface-soft)!important;}
+[data-bs-theme="dark"] .table-light{--bs-table-bg:var(--surface-soft);--bs-table-color:var(--text);}
+
+[data-bs-theme="dark"] .btn-outline-primary{border-color:rgba(140,120,255,.45);}
+
+/* --- Status badges: keep legible but dark-tinted in dark mode ------------- */
+[data-bs-theme="dark"] .status-paid,
+[data-bs-theme="dark"] .badge.text-bg-success{color:#7be3ba!important;background:rgba(16,167,121,.16)!important;}
+[data-bs-theme="dark"] .status-unpaid,
+[data-bs-theme="dark"] .badge.text-bg-warning{color:#f0c06b!important;background:rgba(229,150,34,.18)!important;}
+[data-bs-theme="dark"] .status-draft,
+[data-bs-theme="dark"] .badge.text-bg-secondary{color:#c6cbe0!important;background:rgba(120,128,160,.18)!important;}
+[data-bs-theme="dark"] .status-cancelled,
+[data-bs-theme="dark"] .badge.text-bg-danger{color:#f391a5!important;background:rgba(217,79,104,.18)!important;}
+[data-bs-theme="dark"] .status-badge{color:#a79bff;}
+[data-bs-theme="dark"] .status-active{color:#58e0ae;}
+[data-bs-theme="dark"] .status-inactive{color:#c99cb8;}
+
+/* --- Global layout --------------------------------------------------------- */
+[data-bs-theme="dark"] .app-topbar{background:rgba(16,18,37,.72);}
+
+[data-bs-theme="dark"] .kpi-card:hover{box-shadow:0 18px 34px rgba(0,0,0,.35);}
+
+/* Small accent icon chips — tone down bright pastels in dark */
+[data-bs-theme="dark"] .kpi-icon{color:#b3a8ff;background:rgba(124,110,255,.16);}
+[data-bs-theme="dark"] .kpi-icon.success{color:#58e0ae;background:rgba(16,167,121,.16);}
+[data-bs-theme="dark"] .kpi-icon.warning{color:#f0c06b;background:rgba(229,150,34,.16);}
+[data-bs-theme="dark"] .activity-dot{color:#b3a8ff;background:rgba(124,110,255,.16);}
+[data-bs-theme="dark"] .empty-state i{color:#b3a8ff;background:rgba(124,110,255,.14);}
+
+/* --- Dashboard ------------------------------------------------------------- */
+[data-bs-theme="dark"] .glass-card{
+    background:linear-gradient(135deg,rgba(31,34,64,.92),rgba(24,27,53,.7));
+}
+
+/* --- Customers ------------------------------------------------------------- */
+[data-bs-theme="dark"] .stat-card{
+    background:linear-gradient(180deg,#1d2040,#171a33);
+}
+[data-bs-theme="dark"] .customer-card{background:var(--crm-surface);}
+[data-bs-theme="dark"] .btn-icon{background:var(--surface);border-color:rgba(124,110,255,.28);}
+[data-bs-theme="dark"] .customer-avatar{background:linear-gradient(135deg,#2a2c52,#202342);box-shadow:0 10px 24px rgba(0,0,0,.28);}
+[data-bs-theme="dark"] .crm-customers-table tbody tr{border-color:var(--crm-border);}
+[data-bs-theme="dark"] .pagination .page-link{color:#a79bff;border-color:rgba(124,110,255,.28);}
+
+/* --- Products -------------------------------------------------------------- */
+[data-bs-theme="dark"] .products-table tbody tr{background:var(--surface-soft);}
+
+/* --- Invoices: list / builder / detail ------------------------------------- */
+[data-bs-theme="dark"] .builder-card,
+[data-bs-theme="dark"] .totals-card,
+[data-bs-theme="dark"] .preview-panel{
+    background:var(--surface);
+    border-color:var(--border);
+    box-shadow:0 22px 60px rgba(0,0,0,.32);
+}
+[data-bs-theme="dark"] .auto-number{background:var(--surface-soft);border-color:rgba(124,110,255,.3);}
+[data-bs-theme="dark"] .customer-summary{background:var(--surface-soft);}
+[data-bs-theme="dark"] .summary-contact{color:var(--text);}
+[data-bs-theme="dark"] .preview-toolbar{background:var(--surface-soft);}
+[data-bs-theme="dark"] .toolbar-button{background:var(--surface);border-color:rgba(124,110,255,.3);}
+[data-bs-theme="dark"] .remove-builder-item{background:rgba(217,79,104,.15);}
+[data-bs-theme="dark"] .preview-frame{background:var(--surface-soft);}
+[data-bs-theme="dark"] .builder-table tbody tr{border-color:rgba(124,110,255,.2);}
+[data-bs-theme="dark"] .builder-table tbody tr.builder-item-row{background:var(--surface-soft);}
+
+/* A4 preview intentionally stays a white "paper" document */
+[data-bs-theme="dark"] .a4-preview{background:#fff;}
+
+[data-bs-theme="dark"] .invoice-hero,
+[data-bs-theme="dark"] .invoice-summary-card,
+[data-bs-theme="dark"] .invoice-meta-card,
+[data-bs-theme="dark"] .info-card,
+[data-bs-theme="dark"] .items-card,
+[data-bs-theme="dark"] .notes-card,
+[data-bs-theme="dark"] .payment-summary-card,
+[data-bs-theme="dark"] .invoice-summary-card.aside-panel{
+    background:var(--surface);
+    border-color:var(--border);
+    box-shadow:0 20px 40px rgba(0,0,0,.3);
+}
+[data-bs-theme="dark"] .invoice-items-table tbody tr{background:var(--surface-soft);border-color:var(--border);}
+
+[data-bs-theme="dark"] .quick-table tbody tr.quick-item{background:var(--surface-soft);}
+[data-bs-theme="dark"] .remove-quick-item{background:rgba(217,79,104,.15);}
+
+/* --- AI / chat ------------------------------------------------------------- */
+[data-bs-theme="dark"] .chat-message-user .chat-avatar{background:#2a2c52;color:#b3a8ff;}
+
+/* --- Profile / settings / shop setup --------------------------------------- */
+[data-bs-theme="dark"] .profile-avatar-wrap,
+[data-bs-theme="dark"] .edit-avatar-wrap{border-color:#2a2c52;}
+[data-bs-theme="dark"] .security-icon{color:#b3a8ff;background:rgba(124,110,255,.16);}
+
+[data-bs-theme="dark"] .settings-hero,
+[data-bs-theme="dark"] .settings-card{background:linear-gradient(145deg,#1c1f3e,#171a33);}
+[data-bs-theme="dark"] .settings-icon.appearance{color:#c3b8ff;background:rgba(124,110,255,.16);}
+[data-bs-theme="dark"] .settings-icon.company{color:#66d3ea;background:rgba(13,143,168,.18);}
+[data-bs-theme="dark"] .settings-icon.invoice{color:#f0b86a;background:rgba(229,150,34,.16);}
+[data-bs-theme="dark"] .settings-icon.alerts{color:#f28ba5;background:rgba(217,79,104,.16);}
+[data-bs-theme="dark"] .settings-icon.data{color:#7fb4ef;background:rgba(52,118,202,.18);}
+[data-bs-theme="dark"] .settings-icon.account{color:#6fd6ab;background:rgba(54,139,108,.18);}
+[data-bs-theme="dark"] .future-label,
+[data-bs-theme="dark"] .data-action small,
+[data-bs-theme="dark"] .account-actions small{color:var(--text-muted);}
+
+/* --- Notifications --------------------------------------------------------- */
+[data-bs-theme="dark"] .dropdown-header,
+[data-bs-theme="dark"] .dropdown-footer{border-color:var(--border);}

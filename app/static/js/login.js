@@ -50,6 +50,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (savedTheme) root.setAttribute('data-bs-theme', savedTheme);
 
+  const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+  if (themeColorMeta) themeColorMeta.dataset.light = themeColorMeta.content;
+  const syncThemeColor = () => {
+    if (!themeColorMeta) return;
+    const dark = root.getAttribute('data-bs-theme') === 'dark';
+    themeColorMeta.setAttribute('content', dark ? '#101225' : (themeColorMeta.dataset.light || '#6652d7'));
+  };
+
   if (themeToggle) {
     const label = themeToggle.querySelector('span');
     const icon = themeToggle.querySelector('i');
@@ -59,11 +67,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (icon) icon.className = dark ? 'bi bi-sun' : 'bi bi-moon-stars';
     };
     syncThemeButton();
+    syncThemeColor();
     themeToggle.addEventListener('click', () => {
       const next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
       root.setAttribute('data-bs-theme', next);
       localStorage.setItem('smart-invoice-theme', next);
       syncThemeButton();
+      syncThemeColor();
     });
   }
 

@@ -16,3 +16,23 @@ body.login-page { min-height: 100vh; margin: 0; color: var(--ink); background: #
 @media (max-width: 991.98px) { .login-shell { grid-template-columns: 1fr; }.login-hero { display: none; }.login-panel { min-height: 100vh; }.mobile-brand { display: inline-flex; }.login-card { padding: 18px 4px; } }
 @media (max-width: 420px) { .login-panel { padding: 26px 20px; }.login-card h2 { font-size: 1.7rem; }.form-options { gap: 12px; }.form-options a { white-space: nowrap; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+
+/* --- DARK MODE (auth pages) ---------------------------------------------- */
+[data-bs-theme="dark"] body.login-page { background: #101225; }
+[data-bs-theme="dark"] .login-panel { background: linear-gradient(145deg, #191c36, #161830); }
+[data-bs-theme="dark"] .mobile-brand { color: #e6e9fb; }
+[data-bs-theme="dark"] .form-label { color: #d5d9ef; }
+[data-bs-theme="dark"] .form-control { color: var(--input-text, #f0f1fa); background: rgba(32, 35, 66, .9); border-color: #2f3356; }
+[data-bs-theme="dark"] .form-control::placeholder { color: #7c82a0; }
+[data-bs-theme="dark"] .form-control:focus { background: #202342; }
+[data-bs-theme="dark"] .input-wrap > svg { stroke: #8a90b3; }
+[data-bs-theme="dark"] .password-toggle { color: #aab0cd; }
+[data-bs-theme="dark"] .password-toggle:hover { background: rgba(124, 110, 255, .16); }
+[data-bs-theme="dark"] .remember { color: #aab0cd; }
+[data-bs-theme="dark"] .remember span { background: #202342; border-color: #2f3356; }
+[data-bs-theme="dark"] .divider { color: #7c82a0; }
+[data-bs-theme="dark"] .divider::before, [data-bs-theme="dark"] .divider::after { background: #2f3356; }
+[data-bs-theme="dark"] .google-button { color: #e6e9fb; background: rgba(32, 35, 66, .7); border-color: #2f3356; }
+[data-bs-theme="dark"] .google-button:hover { background: #202342; border-color: #3a3f6b; }
+[data-bs-theme="dark"] .register-prompt { color: #aab0cd; }
+[data-bs-theme="dark"] .login-card .eyebrow { color: #b3a8ff; }

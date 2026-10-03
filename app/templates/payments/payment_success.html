@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}
+Payment Successful · Smart Invoice Generator
+{% endblock %}
+
+{% block head %}
+<style>
+  .success-page {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .success-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  .success-header {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 3rem 2rem;
+  }
+
+  .success-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+  }
+
+  .success-content {
+    padding: 2rem;
+  }
+
+  .payment-details {
+    background: #f9fafb;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    text-align: left;
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 0.75rem 0;
+    padding: 0.5rem 0;
+  }
+
+  .detail-row:not(:last-child) {
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .detail-row.highlight {
+    background: #ecfdf5;
+    padding: 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #059669;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 2rem 0;
+  }
+
+  .action-buttons .btn {
+    flex: 1;
+    min-width: 150px;
+  }
+
+  @media (max-width: 768px) {
+    .success-page {
+      margin: 1rem;
+      padding: 1rem;
+    }
+
+    .action-buttons {
+      flex-direction: column;
+    }
+
+    .action-buttons .btn {
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="success-page">
+  <div class="success-card">
+    <div class="success-header">
+      <div class="success-icon">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <h1>Payment Successful!</h1>
+      <p>This invoice has been marked as paid</p>
+    </div>
+
+    <div class="success-content">
+      <div class="payment-details">
+        <h5><i class="bi bi-receipt"></i> Payment Details</h5>
+
+        <div class="detail-row">
+          <span>Invoice Number:</span>
+          <strong>{{ invoice.invoice_number }}</strong>
+        </div>
+
+        <div class="detail-row">
+          <span>Payment Date:</span>
+          <span>{{ invoice.payment_date.strftime('%d %b %Y at %I:%M %p') if invoice.payment_date else 'Just now' }}</span>
+        </div>
+
+        {% if invoice.payment_transaction_id %}
+        <div class="detail-row">
+          <span>Transaction ID:</span>
+          <code>{{ invoice.payment_transaction_id }}</code>
+        </div>
+        {% endif %}
+
+        <div class="detail-row">
+          <span>Payment Method:</span>
+          <span>{{ invoice.payment_method or ('Mock UPI' if provider == 'mock' else 'Razorpay') }}</span>
+        </div>
+
+        <div class="detail-row highlight">
+          <span>Amount Paid:</span>
+          <span>₹{{ "%.2f"|format(invoice.grand_total) }}</span>
+        </div>
+      </div>
+
+      {% if provider == 'mock' %}
+      <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i>
+        <strong>TEST payment.</strong> This is a secure mock confirmation and does not represent a real fund transfer.
+      </div>
+      {% endif %}
+
+      <div class="action-buttons">
+        <button onclick="window.print()" class="btn btn-outline-secondary">
+          <i class="bi bi-printer"></i> Print Receipt
+        </button>
+
+        <button onclick="shareReceipt()" class="btn btn-outline-info">
+          <i class="bi bi-share"></i> Share Receipt
+        </button>
+      </div>
+
+      <div class="text-center mt-4">
+        <p class="text-muted">
+          <i class="bi bi-shield-check"></i>
+          Thank you for your payment!
+        </p>
+
+        <hr>
+
+        <p class="small text-muted">
+          For any questions about this payment, please contact us with reference: {{ invoice.invoice_number }}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function shareReceipt() {
+  const text = 'Payment Receipt - {{ invoice.invoice_number }}\n\nPayment of ₹{{ "%.2f"|format(invoice.grand_total) }} for {{ invoice.invoice_number }} completed.';
+  if (navigator.share) {
+    navigator.share({ title: 'Payment Receipt - {{ invoice.invoice_number }}', text: text, url: window.location.href });
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(text + '\n\n' + window.location.href).then(() => alert('Receipt details copied to clipboard!'));
+  } else {
+    alert(text);
+  }
+}
+
+// If this page is opened before the invoice is actually paid, send the
+// visitor back to the (read-only) payment page. Never mutates anything.
+window.addEventListener('load', function () {
+  fetch('/payments/status/{{ token }}')
+    .then(response => response.json())
+    .then(data => {
+      if (data.payment_status !== 'Paid') {
+        window.location.href = '/payments/pay/{{ token }}';
+      }
+    })
+    .catch(() => {});
+});
+</script>
+{% endblock %}

@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from decimal import Decimal
 
 from app.extensions import db
 
@@ -22,6 +23,14 @@ class ShopProfile(db.Model):
     email = db.Column(db.String(120), nullable=True)
     gst_number = db.Column(db.String(64), nullable=True)
     logo = db.Column(db.String(255), nullable=True)
+
+    # ── Invoice settings ────────────────────────────────────────────────────
+    invoice_prefix = db.Column(db.String(20), nullable=False, default="INV")
+    default_gst = db.Column(db.Numeric(5, 2), nullable=False, default=Decimal("18.00"))
+    currency = db.Column(db.String(3), nullable=False, default="INR")
+    payment_terms = db.Column(db.String(100), nullable=False, default="Due on Receipt")
+    footer_note = db.Column(db.Text, nullable=True)
+
     created_at = db.Column(
         db.DateTime(timezone=True),
         nullable=False,

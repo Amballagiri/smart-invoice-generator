@@ -11,7 +11,7 @@ from werkzeug.exceptions import RequestEntityTooLarge
 
 from app.extensions import db
 from app.forms.profile_forms import ChangePasswordForm, ProfileForm
-from app.forms.company_forms import CompanyForm, ShopSetupForm
+from app.forms.company_forms import CompanyForm, InvoiceSettingsForm, ShopLogoForm, ShopSetupForm
 import json
 from flask import jsonify
 from app.models.notification import Notification
@@ -154,9 +154,40 @@ def change_password():
     return render_template("main/change_password.html", form=form)
 
 
-@main_bp.route("/settings")
+@main_bp.route("/settings", methods=["GET", "POST"])
 @login_required
 def settings():
+    profile = current_user.shop_profile
+    invoice_settings_form = InvoiceSettingsForm()
+    logo_form = ShopLogoForm()
+
+    if request.method == "GET":
+        if profile is not None:
+            invoice_settings_form.process(obj=profile)
+        else:
+            invoice_settings_form.process(
+                data={
+                    "invoice_prefix": "INV",
+                    "default_gst": 18,
+                    "currency": "INR",
+                    "payment_terms": "Due on Receipt",
+                    "footer_note": "Thank you for your business.",
+                }
+            )
+    elif invoice_settings_form.validate_on_submit():
+        if profile is None:
+            flash("Set up your shop before changing invoice settings.", "warning")
+            return redirect(url_for("main.setup_shop"))
+
+        profile.invoice_prefix = invoice_settings_form.invoice_prefix.data.strip().upper()
+        profile.default_gst = invoice_settings_form.default_gst.data
+        profile.currency = invoice_settings_form.currency.data
+        profile.payment_terms = invoice_settings_form.payment_terms.data
+        profile.footer_note = invoice_settings_form.footer_note.data.strip() or None
+        db.session.commit()
+        flash("Invoice settings updated.", "success")
+        return redirect(url_for("main.settings"))
+
     company = {
         "name": current_app.config["COMPANY_NAME"],
         "gst_number": current_app.config["COMPANY_GST_NUMBER"],
@@ -165,7 +196,10 @@ def settings():
 
     return render_template(
         "main/settings.html",
-         company=company,
+        company=company,
+        invoice_settings_form=invoice_settings_form,
+        profile=profile,
+        logo_form=logo_form,
     )
 
 
@@ -196,7 +230,7 @@ def company():
         form.gst_number.data = company["gst_number"]
         form.email.data = company["email"]
         form.phone.data = company["phone"]
-        return render_template("main/company.html", company=company, form=form)
+        return render_template("main/company.html", company=company, form=form, profile=current_user.shop_profile)
 
     # Handle save
     if request.method == "POST":
@@ -224,10 +258,35 @@ def company():
                 current_app.logger.exception("Failed to save company overrides")
                 flash("Failed to save company details.", "danger")
         # Validation failed - re-render form with errors
-        return render_template("main/company.html", company=company, form=form)
+        return render_template("main/company.html", company=company, form=form, profile=current_user.shop_profile)
 
     # Default: view-only
-    return render_template("main/company.html", company=company)
+    return render_template("main/company.html", company=company, profile=current_user.shop_profile)
+
+
+@main_bp.post("/settings/logo")
+@login_required
+def upload_shop_logo():
+    form = ShopLogoForm()
+    if not form.validate_on_submit() or not isinstance(form.logo.data, FileStorage):
+        for error in form.logo.errors:
+            flash(error, "danger")
+        if not form.logo.errors:
+            flash("Choose an image to upload.", "warning")
+        return redirect(url_for("main.settings"))
+
+    profile = current_user.shop_profile
+    if profile is None:
+        flash("Set up your shop before uploading a logo.", "warning")
+        return redirect(url_for("main.setup_shop"))
+
+    previous = profile.logo
+    profile.logo = _save_shop_logo(form.logo.data, current_user.id)
+    db.session.commit()
+    if previous and previous != profile.logo:
+        _delete_shop_logo(previous)
+    flash("Shop logo updated.", "success")
+    return redirect(url_for("main.settings"))
 
 
 @main_bp.route("/setup", methods=["GET", "POST"])
@@ -410,7 +469,13 @@ def _delete_custom_profile_image(image_path):
     upload_directory = (Path(current_app.static_folder) / "uploads" / "profiles").resolve()
     candidate = (Path(current_app.static_folder) / image_path).resolve()
     if candidate.is_relative_to(upload_directory) and candidate.is_file():
-        candidate.unlink()
+        try:
+            candidate.unlink()
+        except OSError:
+            current_app.logger.warning(
+                "Could not remove previous profile image %s; it may still be in use.",
+                candidate,
+            )
 
 
 def _save_shop_logo(upload, user_id):

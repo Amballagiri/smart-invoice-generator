@@ -7,6 +7,7 @@ from app.models.user import User
 from app.models.notification import Notification
 from app.models.ai_conversation import AIConversation
 from app.models.shop_profile import ShopProfile
+from app.models.payment import Payment, PaymentEvent
 
 __all__ = [
     "AIConversation",
@@ -14,6 +15,8 @@ __all__ = [
     "InventoryHistory",
     "Invoice",
     "InvoiceItem",
+    "Payment",
+    "PaymentEvent",
     "Product",
     "User",
     "Notification",

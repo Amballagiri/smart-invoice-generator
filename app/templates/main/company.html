@@ -1,5 +1,6 @@
 {% extends "base.html" %}{% block title %}Company · Smart Invoice{% endblock %}{% block content %}<div class="page-header"><div><span class="eyebrow">WORKSPACE</span><h1>Company information</h1><p>Details used across your invoices and correspondence.</p></div></div><section class="card glass-card"><div class="card-body p-4 p-md-5"><div class="d-flex align-items-center gap-3 mb-4"><span class="kpi-icon mb-0"><i class="bi bi-building"></i></span><div><h2 class="h4 mb-1">{{ company.name }}</h2><span class="text-muted">Primary business profile</span></div></div>
 
+<div class="mb-3 row align-items-center"><label class="col-md-3 col-form-label">Company logo</label><div class="col-md-9">{% if profile is not none and profile.logo %}<img class="company-logo-preview" src="{{ url_for('static', filename=profile.logo) }}" alt="{{ company.name }} logo" style="max-width:96px;max-height:96px;">{% else %}<span class="text-muted">No logo uploaded</span>{% endif %}</div></div>
   {% if form %}
   <form method="post" novalidate>
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

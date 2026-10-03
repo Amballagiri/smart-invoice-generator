@@ -1,0 +1,63 @@
+/* ============================================================================
+   Theme selector — Light / Dark / Business Blue
+   Works with every theme (uses the shared CSS variables from style.css).
+   ============================================================================ */
+
+.theme-switcher{position:relative;display:inline-flex;align-items:center;}
+
+.theme-flyout{
+    position:absolute;
+    z-index:1090;
+    top:calc(100% + 8px);
+    right:0;
+    min-width:190px;
+    padding:6px;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:var(--surface);
+    box-shadow:var(--shadow,0 12px 32px rgba(25,35,83,.14));
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(-6px) scale(.98);
+    transform-origin:top right;
+    transition:opacity .16s ease,transform .16s ease,visibility .16s ease;
+}
+.theme-switcher.is-open .theme-flyout{
+    opacity:1;
+    visibility:visible;
+    transform:translateY(0) scale(1);
+}
+
+.theme-option{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    width:100%;
+    padding:9px 10px;
+    border:0;
+    border-radius:8px;
+    color:var(--text,var(--ink));
+    background:transparent;
+    font-size:.78rem;
+    font-weight:600;
+    text-align:left;
+    cursor:pointer;
+}
+.theme-option i:first-child{width:16px;color:var(--muted);font-size:.92rem;text-align:center;}
+.theme-option span{flex:1;}
+.theme-option .theme-check{color:var(--primary);font-size:.85rem;opacity:0;}
+.theme-option:hover,
+.theme-option:focus-visible{background:var(--surface-soft);outline:none;}
+.theme-option[aria-checked="true"]{color:var(--primary);background:var(--surface-soft);}
+.theme-option[aria-checked="true"] i:first-child,
+.theme-option[aria-checked="true"] .theme-check{color:var(--primary);}
+.theme-option[aria-checked="true"] .theme-check{opacity:1;}
+
+.theme-caret{font-size:.58rem;color:var(--muted);}
+
+[data-bs-theme="business"] .theme-switcher .theme-flyout{border-color:#cfe0fb;}
+
+@media(max-width:767.98px){
+    .theme-button span{display:none;}
+    .theme-caret{display:none;}
+}

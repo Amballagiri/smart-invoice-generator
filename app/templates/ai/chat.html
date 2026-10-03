@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% block title %}AI Invoice Assistant · Smart Invoice{% endblock %}
+{% block body_class %}ai-assistant-page{% endblock %}
+{% block page_footer %}{% endblock %}
 {% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/ai.css') }}"><script defer src="{{ url_for('static', filename='js/ai.js') }}"></script>{% endblock %}
 {% block content %}
 <section class="ai-page" data-ai-chat data-message-url="{{ url_for('ai.message') }}">

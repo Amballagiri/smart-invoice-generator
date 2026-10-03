@@ -12,6 +12,7 @@ ai_bp = Blueprint("ai", __name__, url_prefix="/ai-assistant")
 @ai_bp.get("/")
 @login_required
 def chat():
+    InvoiceAssistant.clear_previous_days(current_user.id)
     conversations = (
         AIConversation.query.filter_by(user_id=current_user.id)
         .order_by(AIConversation.created_at.asc(), AIConversation.id.asc())

@@ -45,41 +45,79 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedFont = localStorage.getItem(FONT_STORAGE_KEY);
   if (savedFont) root.style.setProperty('--app-font-scale', FONT_SCALES[savedFont] || FONT_SCALES.medium);
 
-  const themeToggle = document.getElementById('themeToggle');
-  const savedTheme = localStorage.getItem('smart-invoice-theme');
-
-  if (savedTheme) root.setAttribute('data-bs-theme', savedTheme);
+  const THEME_KEY = 'smart-invoice-theme';
+  const THEMES = ['light', 'dark', 'business'];
+  const THEME_META = {
+    light: { label: 'Light mode', icon: 'bi-sun', color: '#6652d7' },
+    dark: { label: 'Dark mode', icon: 'bi-moon-stars', color: '#101225' },
+    business: { label: 'Business Blue', icon: 'bi-briefcase', color: '#1d4ed8' }
+  };
+  const normalizeTheme = (value) => (THEMES.includes(value) ? value : 'light');
+  const getTheme = () => normalizeTheme(root.getAttribute('data-bs-theme') || localStorage.getItem(THEME_KEY));
 
   const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-  if (themeColorMeta) themeColorMeta.dataset.light = themeColorMeta.content;
-  const syncThemeColor = () => {
-    if (!themeColorMeta) return;
-    const dark = root.getAttribute('data-bs-theme') === 'dark';
-    themeColorMeta.setAttribute('content', dark ? '#101225' : (themeColorMeta.dataset.light || '#6652d7'));
+  const themeToggle = document.getElementById('themeToggle');
+  const themeSwitcher = document.getElementById('themeSwitcher');
+  const themeMenu = document.getElementById('themeMenu');
+  const themeLabel = document.getElementById('themeToggleLabel');
+  const themeIcon = document.getElementById('themeToggleIcon');
+
+  const syncThemeUI = () => {
+    const theme = getTheme();
+    const meta = THEME_META[theme];
+    if (themeLabel) themeLabel.textContent = meta.label;
+    if (themeIcon) themeIcon.className = `bi ${meta.icon}`;
+    if (themeColorMeta) themeColorMeta.setAttribute('content', meta.color);
+    document.querySelectorAll('.theme-option').forEach((option) => {
+      option.setAttribute('aria-checked', String(option.dataset.themeValue === theme));
+    });
+    const settingsSelect = document.getElementById('settingsThemeSelect');
+    if (settingsSelect) settingsSelect.value = theme;
   };
 
-  if (themeToggle) {
-    const label = themeToggle.querySelector('span');
-    const icon = themeToggle.querySelector('i');
-    const syncThemeButton = () => {
-      const dark = root.getAttribute('data-bs-theme') === 'dark';
-      if (label) label.textContent = dark ? 'Light mode' : 'Dark mode';
-      if (icon) icon.className = dark ? 'bi bi-sun' : 'bi bi-moon-stars';
-    };
-    syncThemeButton();
-    syncThemeColor();
-    themeToggle.addEventListener('click', () => {
-      const next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
-      root.setAttribute('data-bs-theme', next);
-      localStorage.setItem('smart-invoice-theme', next);
-      syncThemeButton();
-      syncThemeColor();
+  const setTheme = (value) => {
+    const theme = normalizeTheme(value);
+    root.setAttribute('data-bs-theme', theme);
+    try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+    syncThemeUI();
+  };
+
+  const savedTheme = localStorage.getItem(THEME_KEY);
+  if (savedTheme) root.setAttribute('data-bs-theme', normalizeTheme(savedTheme));
+
+  const closeThemeMenu = () => {
+    if (!themeSwitcher) return;
+    themeSwitcher.classList.remove('is-open');
+    if (themeMenu) themeMenu.setAttribute('aria-hidden', 'true');
+    if (themeToggle) themeToggle.setAttribute('aria-expanded', 'false');
+  };
+
+  if (themeToggle && themeSwitcher) {
+    themeToggle.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const isOpen = themeSwitcher.classList.toggle('is-open');
+      if (themeMenu) themeMenu.setAttribute('aria-hidden', String(!isOpen));
+      themeToggle.setAttribute('aria-expanded', String(isOpen));
+    });
+    themeSwitcher.querySelectorAll('.theme-option').forEach((option) => {
+      option.addEventListener('click', () => {
+        setTheme(option.dataset.themeValue);
+        closeThemeMenu();
+      });
+    });
+    document.addEventListener('click', (event) => {
+      if (!themeSwitcher.contains(event.target)) closeThemeMenu();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeThemeMenu();
     });
   }
+  syncThemeUI();
 
-  document.getElementById('settingsThemeToggle')?.addEventListener('click', () => {
-    document.getElementById('themeToggle')?.click();
-  });
+  const settingsThemeSelect = document.getElementById('settingsThemeSelect');
+  if (settingsThemeSelect) {
+    settingsThemeSelect.addEventListener('change', () => setTheme(settingsThemeSelect.value));
+  }
 
   document.querySelector('[data-sidebar-toggle]')?.addEventListener('click', () => {
     document.getElementById('appSidebar')?.classList.toggle('is-open');

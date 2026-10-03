@@ -1,35 +1,711 @@
 {% extends "base.html" %}
-{% block title %}About · Smart Invoice{% endblock %}
-{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}">{% endblock %}
-{% block content %}
-<section class="about-page">
-  <header class="settings-hero"><div><span class="eyebrow">ABOUT</span><h1>Smart Invoice Generator</h1><p>A simple and efficient invoice and business management solution for small businesses.</p></div><span class="settings-hero-icon"><i class="bi bi-info-circle"></i></span></header>
+{% block title %}About · Smart Invoice Generator{% endblock %}
 
-  <section class="about-card">
-    <div class="about-section-heading"><span class="settings-icon appearance"><i class="bi bi-stars"></i></span><div><h2>Features</h2><p>Everything you need to run your business.</p></div></div>
-    <ul class="about-features">
-      <li><i class="bi bi-receipt"></i> Create and manage invoices</li>
-      <li><i class="bi bi-people"></i> Customer management</li>
-      <li><i class="bi bi-box-seam"></i> Product and inventory management</li>
-      <li><i class="bi bi-percent"></i> GST and discount calculations</li>
-      <li><i class="bi bi-file-earmark-pdf"></i> PDF invoice generation</li>
-      <li><i class="bi bi-envelope"></i> Email invoices</li>
-      <li><i class="bi bi-whatsapp"></i> WhatsApp invoice sharing</li>
-      <li><i class="bi bi-robot"></i> Smart Invoice AI Assistant</li>
-      <li><i class="bi bi-bar-chart"></i> Business dashboard and reports</li>
-    </ul>
-  </section>
-
-  <section class="about-card">
-    <div class="about-section-heading"><span class="settings-icon company"><i class="bi bi-code-slash"></i></span><div><h2>Developer</h2><p>Built with care for small businesses.</p></div></div>
-    <p class="about-developer">Designed &amp; Developed by <strong>Amballa Giri</strong></p>
-    <p class="about-instagram-label">Instagram</p>
-    <a class="about-instagram" href="https://www.instagram.com/giri_79189" target="_blank" rel="noopener noreferrer"><i class="bi bi-instagram"></i> @giri_79189</a>
-  </section>
-
-  <section class="about-meta">
-    <span>Version <strong>1.0.0</strong></span>
-    <span>© 2026 Smart Invoice Generator</span>
-  </section>
-</section>
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}">
+<script>
+(function () {
+  var reduced = false;
+  try { reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  document.documentElement.setAttribute('data-about-intro', reduced ? 'skip' : 'play');
+})();
+</script>
 {% endblock %}
+
+{% block content %}
+<div class="about-intro-overlay" id="aboutIntro" role="dialog" aria-label="Smart Invoice Generator introduction" aria-modal="false">
+  <span class="about-intro-glow" aria-hidden="true"></span>
+  <span class="about-intro-particle p1" aria-hidden="true"></span>
+  <span class="about-intro-particle p2" aria-hidden="true"></span>
+  <span class="about-intro-particle p3" aria-hidden="true"></span>
+  <span class="about-intro-particle p4" aria-hidden="true"></span>
+  <span class="about-intro-particle p5" aria-hidden="true"></span>
+  <span class="about-intro-particle p6" aria-hidden="true"></span>
+
+  <div class="about-intro-scene" aria-hidden="true">
+    <div class="about-intro-doc" id="aboutIntroDoc">
+      <span class="about-intro-doc-back"></span>
+      <div class="about-intro-doc-sheet">
+        <div class="about-intro-doc-top">
+          <span class="about-intro-logo">SI</span>
+          <span class="about-intro-doc-lines">
+            <span class="l l1"></span>
+            <span class="l l2"></span>
+          </span>
+          <span class="about-intro-status"></span>
+        </div>
+
+        <div class="about-intro-panels">
+          <section class="about-intro-panel about-intro-panel--users">
+            <div class="about-intro-panel-inner">
+              <p class="about-intro-panel-tag">01 · For Users</p>
+              <h2 class="about-intro-panel-title">Simple. Fast. Professional.</h2>
+              <p class="about-intro-panel-text">Designed to make invoice management easier.</p>
+            </div>
+          </section>
+
+          <section class="about-intro-panel about-intro-panel--eng">
+            <div class="about-intro-panel-inner">
+              <p class="about-intro-panel-tag">02 · Engineering</p>
+              <h2 class="about-intro-panel-title">Engineered with purpose</h2>
+              <p class="about-intro-panel-text">Modern technology. Secure. Scalable. Efficient.</p>
+              <div class="about-intro-chips">
+                <span>Secure</span><span>Scalable</span><span>Efficient</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="about-intro-panel about-intro-panel--credit">
+            <div class="about-intro-panel-inner">
+              <p class="about-intro-panel-tag">03 · Credits</p>
+              <p class="about-intro-credit-label">Developed &amp; Designed by</p>
+              <p class="about-intro-credit-name">GIRI</p>
+              <p class="about-intro-credit-sub">Smart Invoice Generator</p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="about-intro-brand">
+    <span class="about-intro-brand-mark" aria-hidden="true">S</span>
+    <div>
+      <strong>Smart Invoice Generator</strong>
+      <span>Simple invoicing. Smarter business.</span>
+    </div>
+  </div>
+
+  <button type="button" class="about-intro-skip" id="aboutIntroSkip">Skip intro</button>
+</div>
+
+<div class="about-container">
+
+  <!-- ========================================================================
+       1. HERO SECTION
+       ======================================================================== -->
+  <section class="about-hero" aria-labelledby="about-hero-title">
+    <div class="about-hero-content">
+      <div class="about-hero-badge">
+        <i class="bi bi-stars" aria-hidden="true"></i>
+        <span>Smart Business Management</span>
+      </div>
+      <h1 id="about-hero-title" class="about-hero-title">Smart Invoice Generator</h1>
+      <p class="about-hero-tagline">Simple invoicing. Smarter business.</p>
+      <p class="about-hero-desc">
+        A simple and efficient invoice and business management solution built to help small businesses create, manage and share professional invoices with ease.
+      </p>
+      <div class="about-hero-actions">
+        <a href="{{ url_for('invoices.quick_invoice') }}" class="btn btn-primary about-btn-primary">
+          <i class="bi bi-plus-circle-fill" aria-hidden="true"></i>
+          <span>Create Invoice</span>
+        </a>
+        <a href="#features" class="btn btn-outline-primary about-btn-secondary">
+          <i class="bi bi-grid-1x2-fill" aria-hidden="true"></i>
+          <span>Explore Features</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Generic Abstract UI Preview (No fake data or fictional numbers) -->
+    <div class="about-hero-visual" aria-hidden="true">
+      <div class="about-preview-card">
+        <div class="about-preview-header">
+          <div class="about-preview-brand">
+            <span class="about-preview-logo">SI</span>
+            <div>
+              <strong>Smart Invoice</strong>
+              <span class="about-preview-sub">Invoice Document</span>
+            </div>
+          </div>
+          <span class="about-preview-badge">
+            <i class="bi bi-file-earmark-text"></i> Invoice Layout
+          </span>
+        </div>
+
+        <div class="about-preview-meta">
+          <div class="about-preview-meta-block">
+            <span class="about-preview-label">Customer Information</span>
+            <div class="about-skeleton-line w-75"></div>
+            <div class="about-skeleton-line w-50"></div>
+          </div>
+          <div class="about-preview-meta-block text-end">
+            <span class="about-preview-label">Invoice Details</span>
+            <div class="about-skeleton-line w-75 ms-auto"></div>
+            <div class="about-skeleton-line w-50 ms-auto"></div>
+          </div>
+        </div>
+
+        <div class="about-preview-table">
+          <div class="about-preview-table-head">
+            <span>Item Description</span>
+            <span class="text-center">Qty</span>
+            <span class="text-end">Tax Rate</span>
+            <span class="text-end">Line Total</span>
+          </div>
+          <div class="about-preview-table-row">
+            <div class="about-skeleton-line w-85"></div>
+            <div class="about-skeleton-line w-35 mx-auto"></div>
+            <div class="about-skeleton-line w-45 ms-auto"></div>
+            <div class="about-skeleton-line w-65 ms-auto"></div>
+          </div>
+          <div class="about-preview-table-row">
+            <div class="about-skeleton-line w-70"></div>
+            <div class="about-skeleton-line w-35 mx-auto"></div>
+            <div class="about-skeleton-line w-45 ms-auto"></div>
+            <div class="about-skeleton-line w-55 ms-auto"></div>
+          </div>
+        </div>
+
+        <div class="about-preview-summary">
+          <div class="about-preview-summary-row">
+            <span>Subtotal</span>
+            <div class="about-skeleton-line w-25"></div>
+          </div>
+          <div class="about-preview-summary-row">
+            <span>GST Calculation</span>
+            <div class="about-skeleton-line w-20"></div>
+          </div>
+          <div class="about-preview-summary-row about-preview-total-row">
+            <span>Grand Total</span>
+            <div class="about-skeleton-line w-30 about-skeleton-primary"></div>
+          </div>
+        </div>
+
+        <div class="about-preview-tags">
+          <span class="about-preview-tag">
+            <i class="bi bi-file-earmark-pdf-fill" aria-hidden="true"></i> PDF Generation
+          </span>
+          <span class="about-preview-tag">
+            <i class="bi bi-envelope-fill" aria-hidden="true"></i> Email Dispatch
+          </span>
+          <span class="about-preview-tag">
+            <i class="bi bi-whatsapp" aria-hidden="true"></i> WhatsApp Sharing
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       2. PRODUCT INTRODUCTION
+       ======================================================================== -->
+  <section class="about-section about-intro-section" id="introduction" aria-labelledby="intro-heading">
+    <div class="about-section-header">
+      <span class="about-section-eyebrow">
+        <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+        Product Overview
+      </span>
+      <h2 id="intro-heading" class="about-section-title">Everything you need to manage your business</h2>
+      <p class="about-section-subtitle">
+        Eliminate tedious paperwork, dispersed spreadsheets, and calculation errors with a unified workspace built specifically for small businesses and merchants.
+      </p>
+    </div>
+
+    <div class="about-intro-grid">
+      <div class="about-intro-content">
+        <p>
+          Smart Invoice Generator centralizes customer records, product catalogs, live inventory tracking, and billing operations into a cohesive platform.
+        </p>
+        <p>
+          From creating itemized GST invoices to generating print-ready PDFs and distributing them directly via email or WhatsApp, every action is designed to be straightforward and fast.
+        </p>
+        <div class="about-intro-points">
+          <div class="about-intro-point">
+            <i class="bi bi-check2" aria-hidden="true"></i>
+            <span>Complete multi-tenant isolation keeping your company data, clients, and catalogs strictly private.</span>
+          </div>
+          <div class="about-intro-point">
+            <i class="bi bi-check2" aria-hidden="true"></i>
+            <span>Automated tax percentages, percentage discounts, and grand totals calculated with zero math errors.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-intro-card">
+        <div class="about-stat-box">
+          <div class="about-stat-icon">
+            <i class="bi bi-shield-check" aria-hidden="true"></i>
+          </div>
+          <strong>Data Privacy</strong>
+          <p>Strict user-scoped database isolation for every customer, product, and invoice record.</p>
+        </div>
+
+        <div class="about-stat-box">
+          <div class="about-stat-icon">
+            <i class="bi bi-calculator" aria-hidden="true"></i>
+          </div>
+          <strong>Automated Math</strong>
+          <p>Precise GST calculations, customizable line discounts, and automated grand totals.</p>
+        </div>
+
+        <div class="about-stat-box">
+          <div class="about-stat-icon">
+            <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
+          </div>
+          <strong>Vector PDF Engine</strong>
+          <p>Clean, branded A4 invoices rendered on-demand with company header and GST details.</p>
+        </div>
+
+        <div class="about-stat-box">
+          <div class="about-stat-icon">
+            <i class="bi bi-robot" aria-hidden="true"></i>
+          </div>
+          <strong>AI Business Copilot</strong>
+          <p>Conversational assistant capable of querying sales and drafting invoices via chat.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       3. FEATURES
+       ======================================================================== -->
+  <section class="about-section about-features-section" id="features" aria-labelledby="features-heading">
+    <div class="about-section-header text-center">
+      <span class="about-section-eyebrow">
+        <i class="bi bi-lightning-charge-fill" aria-hidden="true"></i>
+        Core Capabilities
+      </span>
+      <h2 id="features-heading" class="about-section-title">Powerful features, built for simplicity</h2>
+      <p class="about-section-subtitle">
+        Carefully designed modules covering every aspect of day-to-day commercial billing and record management.
+      </p>
+    </div>
+
+    <div class="about-features-grid">
+      <!-- 1. Create & Manage Invoices -->
+      <article class="about-feature-card">
+        <div class="about-feature-icon">
+          <i class="bi bi-receipt" aria-hidden="true"></i>
+        </div>
+        <h3>Create &amp; Manage Invoices</h3>
+        <p>Draft, edit, track, and organize invoices with auto-generated collision-resistant numbering, payment statuses, and due dates.</p>
+      </article>
+
+      <!-- 2. Customer Management -->
+      <article class="about-feature-card">
+        <div class="about-feature-icon">
+          <i class="bi bi-people" aria-hidden="true"></i>
+        </div>
+        <h3>Customer Management</h3>
+        <p>Maintain a searchable address book of your clients, complete with contact details, billing addresses, and historical sales.</p>
+      </article>
+
+      <!-- 3. Product & Inventory Management -->
+      <article class="about-feature-card">
+        <div class="about-feature-icon">
+          <i class="bi bi-box-seam" aria-hidden="true"></i>
+        </div>
+        <h3>Product &amp; Inventory Management</h3>
+        <p>Catalog products with SKUs, cost prices, selling rates, and real-time inventory tracking with low-stock threshold alerts.</p>
+      </article>
+
+      <!-- 4. GST & Discount Calculations -->
+      <article class="about-feature-card">
+        <div class="about-feature-icon">
+          <i class="bi bi-percent" aria-hidden="true"></i>
+        </div>
+        <h3>GST &amp; Discount Calculations</h3>
+        <p>Automatic item-level and invoice-level GST computation, custom percentage discounts, and round-offs with zero manual mistakes.</p>
+      </article>
+
+      <!-- 5. PDF Invoice Generation -->
+      <article class="about-feature-card">
+        <div class="about-feature-icon">
+          <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
+        </div>
+        <h3>PDF Invoice Generation</h3>
+        <p>Download clean, print-ready, professional A4 PDF invoices formatted with your company header, GSTIN, and vector styling.</p>
+      </article>
+
+      <!-- 6. Email Invoices -->
+      <article class="about-feature-card">
+        <div class="about-feature-icon">
+          <i class="bi bi-envelope-at" aria-hidden="true"></i>
+        </div>
+        <h3>Email Invoices</h3>
+        <p>Deliver invoices straight to customer inboxes with customized message copy and attached PDF documents in a single click.</p>
+      </article>
+
+      <!-- 7. WhatsApp Invoice Sharing -->
+      <article class="about-feature-card">
+        <div class="about-feature-icon">
+          <i class="bi bi-whatsapp" aria-hidden="true"></i>
+        </div>
+        <h3>WhatsApp Invoice Sharing</h3>
+        <p>Quickly dispatch formatted invoice summaries and payment details directly to customer WhatsApp chats without friction.</p>
+      </article>
+
+      <!-- 8. Smart Invoice AI Assistant -->
+      <article class="about-feature-card">
+        <div class="about-feature-icon">
+          <i class="bi bi-robot" aria-hidden="true"></i>
+        </div>
+        <h3>Smart Invoice AI Assistant</h3>
+        <p>Interact with an intelligent assistant to check revenue summaries, identify top customers, or create invoices using natural language.</p>
+      </article>
+
+      <!-- 9. Business Dashboard & Reports -->
+      <article class="about-feature-card">
+        <div class="about-feature-icon">
+          <i class="bi bi-bar-chart-line" aria-hidden="true"></i>
+        </div>
+        <h3>Business Dashboard &amp; Reports</h3>
+        <p>Gain immediate clarity over your business with monthly sales charts, revenue metrics, customer totals, and pending receivables.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       4. HOW IT WORKS
+       ======================================================================== -->
+  <section class="about-section about-workflow-section" id="workflow" aria-labelledby="workflow-heading">
+    <div class="about-section-header text-center">
+      <span class="about-section-eyebrow">
+        <i class="bi bi-signpost-split-fill" aria-hidden="true"></i>
+        Simple Workflow
+      </span>
+      <h2 id="workflow-heading" class="about-section-title">From customer to invoice in a few simple steps</h2>
+      <p class="about-section-subtitle">
+        A seamless step-by-step pipeline designed to get professional invoices ready and sent in moments.
+      </p>
+    </div>
+
+    <div class="about-workflow-steps">
+      <!-- Step 01 -->
+      <div class="about-step-card">
+        <div class="about-step-top">
+          <span class="about-step-number">01</span>
+          <div class="about-step-icon">
+            <i class="bi bi-person-plus-fill" aria-hidden="true"></i>
+          </div>
+        </div>
+        <h3>Add Customers</h3>
+        <p>Save customer contact details, phone numbers, and billing addresses once for automatic auto-completion.</p>
+      </div>
+
+      <!-- Step 02 -->
+      <div class="about-step-card">
+        <div class="about-step-top">
+          <span class="about-step-number">02</span>
+          <div class="about-step-icon">
+            <i class="bi bi-boxes" aria-hidden="true"></i>
+          </div>
+        </div>
+        <h3>Add Products</h3>
+        <p>Set up products with pricing, tax percentages, and stock counts to keep your catalog organized.</p>
+      </div>
+
+      <!-- Step 03 -->
+      <div class="about-step-card">
+        <div class="about-step-top">
+          <span class="about-step-number">03</span>
+          <div class="about-step-icon">
+            <i class="bi bi-file-earmark-diff" aria-hidden="true"></i>
+          </div>
+        </div>
+        <h3>Create Invoice</h3>
+        <p>Select your customer, pick line items, configure discounts, and let the system compute taxes and grand totals.</p>
+      </div>
+
+      <!-- Step 04 -->
+      <div class="about-step-card">
+        <div class="about-step-top">
+          <span class="about-step-number">04</span>
+          <div class="about-step-icon">
+            <i class="bi bi-send-check-fill" aria-hidden="true"></i>
+          </div>
+        </div>
+        <h3>Generate &amp; Share</h3>
+        <p>Export high-resolution PDFs, trigger automated email dispatch, or send instant payment links on WhatsApp.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       5. WHY SMART INVOICE GENERATOR
+       ======================================================================== -->
+  <section class="about-section about-why-section" id="why" aria-labelledby="why-heading">
+    <div class="about-section-header">
+      <span class="about-section-eyebrow">
+        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+        Value Proposition
+      </span>
+      <h2 id="why-heading" class="about-section-title">Why Smart Invoice Generator</h2>
+      <p class="about-section-subtitle">
+        Practical, measurable advantages that help small businesses save time, prevent math errors, and stay organized.
+      </p>
+    </div>
+
+    <div class="about-why-grid">
+      <!-- 1. Save Time -->
+      <div class="about-why-card">
+        <div class="about-why-icon">
+          <i class="bi bi-clock-history" aria-hidden="true"></i>
+        </div>
+        <div class="about-why-content">
+          <h3>Save Time</h3>
+          <p>Generate full itemized invoices in under a minute with pre-filled customer details and rapid product picker.</p>
+        </div>
+      </div>
+
+      <!-- 2. Reduce Manual Calculations -->
+      <div class="about-why-card">
+        <div class="about-why-icon">
+          <i class="bi bi-calculator" aria-hidden="true"></i>
+        </div>
+        <div class="about-why-content">
+          <h3>Reduce Manual Calculations</h3>
+          <p>Automated algorithms compute line subtotals, GST amounts, item discounts, and round-offs accurately every time.</p>
+        </div>
+      </div>
+
+      <!-- 3. Keep Records Organized -->
+      <div class="about-why-card">
+        <div class="about-why-icon">
+          <i class="bi bi-folder-check" aria-hidden="true"></i>
+        </div>
+        <div class="about-why-content">
+          <h3>Keep Business Records Organized</h3>
+          <p>Maintain historical transactions, inventory changes, and customer relationships in a structured, searchable system.</p>
+        </div>
+      </div>
+
+      <!-- 4. Professional Invoices -->
+      <div class="about-why-card">
+        <div class="about-why-icon">
+          <i class="bi bi-award" aria-hidden="true"></i>
+        </div>
+        <div class="about-why-content">
+          <h3>Generate Professional Invoices</h3>
+          <p>Enhance business credibility with consistent, high-standard A4 invoice PDFs displaying your brand and GST identification.</p>
+        </div>
+      </div>
+
+      <!-- 5. Easily Share Invoices -->
+      <div class="about-why-card">
+        <div class="about-why-icon">
+          <i class="bi bi-share" aria-hidden="true"></i>
+        </div>
+        <div class="about-why-content">
+          <h3>Easily Share Invoices</h3>
+          <p>Distribute invoices effortlessly through direct PDF downloads, automated email delivery, and instant WhatsApp links.</p>
+        </div>
+      </div>
+
+      <!-- 6. Manage in One Place -->
+      <div class="about-why-card">
+        <div class="about-why-icon">
+          <i class="bi bi-layers" aria-hidden="true"></i>
+        </div>
+        <div class="about-why-content">
+          <h3>Manage Business in One Place</h3>
+          <p>Keep overview metrics, inventory notifications, overdue invoice alerts, and customer records inside one unified workspace.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       6. TECHNOLOGY / BUILT WITH
+       ======================================================================== -->
+  <section class="about-section about-tech-section" id="technology" aria-labelledby="tech-heading">
+    <div class="about-section-header">
+      <span class="about-section-eyebrow">
+        <i class="bi bi-cpu-fill" aria-hidden="true"></i>
+        Engineering &amp; Stack
+      </span>
+      <h2 id="tech-heading" class="about-section-title">Built with modern technology</h2>
+      <p class="about-section-subtitle">
+        Engineered with trusted, battle-tested open-source frameworks and libraries to ensure stability, privacy, and speed.
+      </p>
+    </div>
+
+    <div class="about-tech-lock-wrap">
+    <div class="about-tech-grid about-tech-grid-locked" aria-hidden="true">
+      <div class="about-tech-card">
+        <span class="about-tech-badge">
+          <i class="bi bi-filetype-py" aria-hidden="true"></i> Framework
+        </span>
+        <strong>Python 3 &amp; Flask</strong>
+        <p>Application Factory structure with clean modular Blueprints and robust routing.</p>
+      </div>
+
+      <div class="about-tech-card">
+        <span class="about-tech-badge">
+          <i class="bi bi-database" aria-hidden="true"></i> Database
+        </span>
+        <strong>SQLAlchemy ORM</strong>
+        <p>Strict user-scoped models with SQLite local storage and PostgreSQL cloud compatibility.</p>
+      </div>
+
+      <div class="about-tech-card">
+        <span class="about-tech-badge">
+          <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Documents
+        </span>
+        <strong>ReportLab Engine</strong>
+        <p>Vector-based PDF generation creating pixel-perfect, printable A4 commercial invoices.</p>
+      </div>
+
+      <div class="about-tech-card">
+        <span class="about-tech-badge">
+          <i class="bi bi-bootstrap" aria-hidden="true"></i> Frontend
+        </span>
+        <strong>Bootstrap 5 &amp; Jinja2</strong>
+        <p>Responsive layout system with custom CSS variables and native Dark Mode support.</p>
+      </div>
+
+      <div class="about-tech-card">
+        <span class="about-tech-badge">
+          <i class="bi bi-robot" aria-hidden="true"></i> Intelligence
+        </span>
+        <strong>OpenAI &amp; OpenRouter</strong>
+        <p>Safe function/tool-calling assistant to inspect metrics and draft invoices conversationally.</p>
+      </div>
+
+      <div class="about-tech-card">
+        <span class="about-tech-badge">
+          <i class="bi bi-shield-lock" aria-hidden="true"></i> Auth
+        </span>
+        <strong>Flask-Login &amp; Authlib</strong>
+        <p>Secure password hashing, time-limited reset tokens, and Google OAuth 2.0 integration.</p>
+      </div>
+
+      <div class="about-tech-card">
+        <span class="about-tech-badge">
+          <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Migrations
+        </span>
+        <strong>Alembic &amp; Migrate</strong>
+        <p>Version-controlled database schema migrations ensuring reliable data upgrades.</p>
+      </div>
+
+      <div class="about-tech-card">
+        <span class="about-tech-badge">
+          <i class="bi bi-check2-circle" aria-hidden="true"></i> Validation
+        </span>
+        <strong>WTForms &amp; CSRF</strong>
+        <p>Server-side input verification and CSRF protection on all sensitive operations.</p>
+      </div>
+    </div>
+    <button type="button" class="about-tech-lock-overlay" data-bs-toggle="modal" data-bs-target="#techLockedModal" aria-label="This section is protected. Activate to learn more.">
+      <span class="about-tech-lock-badge"><i class="bi bi-lock-fill" aria-hidden="true"></i> Protected Information</span>
+      <span class="about-tech-lock-hint"><i class="bi bi-shield-lock-fill" aria-hidden="true"></i> Access restricted — click to request details</span>
+    </button>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       7. DEVELOPER SECTION
+       ======================================================================== -->
+  <section class="about-section about-developer-section" id="developer" aria-labelledby="developer-heading">
+    <div class="about-section-header">
+      <span class="about-section-eyebrow">
+        <i class="bi bi-code-slash" aria-hidden="true"></i>
+        Creator
+      </span>
+      <h2 id="developer-heading" class="about-section-title">Designed &amp; Developed by Amballa Giri</h2>
+      <p class="about-section-subtitle">Built with care for small businesses.</p>
+    </div>
+
+    <div class="about-developer-card">
+      <div class="about-dev-info">
+        <div class="about-dev-avatar" aria-hidden="true">AG</div>
+        <div class="about-dev-text">
+          <h3>Amballa Giri</h3>
+          <p class="about-dev-tagline">Designer &amp; Software Developer</p>
+          <p class="about-dev-desc">
+            Focused on creating intuitive, productive, and reliable digital products that empower business owners and freelancers to manage their operations with confidence.
+          </p>
+        </div>
+      </div>
+      <a class="about-instagram-btn" href="https://www.instagram.com/giri_79189" target="_blank" rel="noopener noreferrer" aria-label="Connect with Amballa Giri on Instagram (@giri_79189)">
+        <i class="bi bi-instagram" aria-hidden="true"></i>
+        <span>@giri_79189</span>
+        <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+      </a>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       8. VERSION & FOOTER INFORMATION
+       ======================================================================== -->
+  <section class="about-meta-section" aria-label="Version and copyright information">
+    <div class="about-meta-bar">
+      <span class="about-meta-item">
+        <i class="bi bi-tag-fill" aria-hidden="true"></i>
+        Version <strong>1.0.0</strong>
+      </span>
+      <span class="about-meta-divider" aria-hidden="true">•</span>
+      <span class="about-meta-item">
+        <i class="bi bi-c-circle" aria-hidden="true"></i>
+        © 2026 Smart Invoice Generator
+      </span>
+    </div>
+  </section>
+
+</div>
+
+<div class="modal fade" id="techLockedModal" tabindex="-1" aria-labelledby="techLockedModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title d-flex align-items-center gap-2" id="techLockedModalLabel"><i class="bi bi-lock-fill text-primary" aria-hidden="true"></i> Protected Information</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-0">This information is restricted to authorized users. Please contact your administrator to request access.</p>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <a class="btn btn-primary" href="https://www.instagram.com/giri_79189" target="_blank" rel="noopener noreferrer"><i class="bi bi-person-lines-fill me-1" aria-hidden="true"></i>Contact Administrator</a>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var root = document.documentElement;
+  var overlay = document.getElementById('aboutIntro');
+  var skip = document.getElementById('aboutIntroSkip');
+  var doneTimer = null;
+
+  function prefersReducedMotion() {
+    try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; }
+  }
+
+  function finish() {
+    if (doneTimer) { window.clearTimeout(doneTimer); doneTimer = null; }
+    root.setAttribute('data-about-intro', 'done');
+  }
+
+  function startIntro() {
+    if (!overlay) { root.setAttribute('data-about-intro', 'done'); return; }
+    if (prefersReducedMotion()) { root.setAttribute('data-about-intro', 'skip'); return; }
+    root.setAttribute('data-about-intro', 'play');
+    if (doneTimer) window.clearTimeout(doneTimer);
+    doneTimer = window.setTimeout(finish, 5200);
+  }
+
+  if (overlay) {
+    overlay.addEventListener('animationend', function (event) {
+      if (event.target === overlay && event.animationName === 'aboutIntroOverlay') finish();
+    });
+  }
+  if (skip) {
+    skip.addEventListener('click', finish);
+  }
+
+  startIntro();
+
+  window.addEventListener('pageshow', function (event) {
+    if (event.persisted) startIntro();
+  });
+})();
+</script>
+{% endblock %}
+

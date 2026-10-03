@@ -1,10 +1,13 @@
 from io import BytesIO
+from pathlib import Path
 
+from PIL import Image as PILImage
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_LEFT, TA_RIGHT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
+from reportlab.lib.utils import ImageReader
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 
@@ -98,19 +101,57 @@ def generate_invoice_pdf(invoice, company):
     if invoice.notes:
         story += [Paragraph("<b>Notes</b>", heading), Spacer(1, 2 * mm), Paragraph(invoice.notes, body), Spacer(1, 8 * mm)]
     story.append(Paragraph("Thank you for your business.", ParagraphStyle("ThankYou", parent=body, fontName="Helvetica-Bold", fontSize=10, textColor=colors.HexColor("#0F4C81"))))
-    document.build(story, onFirstPage=lambda canvas, doc: _draw_header_footer(canvas, doc, company), onLaterPages=lambda canvas, doc: _draw_header_footer(canvas, doc, company))
+    logo_reader = _load_company_logo(company.get("logo"))
+    document.build(story, onFirstPage=lambda canvas, doc: _draw_header_footer(canvas, doc, company, logo_reader), onLaterPages=lambda canvas, doc: _draw_header_footer(canvas, doc, company, logo_reader))
     output.seek(0)
     return output
 
 
-def _draw_header_footer(canvas, document, company):
+def _load_company_logo(logo_path):
+    """Return a ReportLab ImageReader for the shop logo, or None.
+
+    Uploaded logos are stored as WEBP, which some ReportLab builds cannot read
+    directly. The image is therefore decoded with Pillow and normalised to an
+    in-memory PNG (RGBA) before being handed to ReportLab. Converting to RGBA
+    keeps transparent logos intact; alpha is honoured when drawing via
+    ``mask="auto"``. Any decoding failure falls back to no logo.
+    """
+    if not logo_path or not Path(logo_path).is_file():
+        return None
+    try:
+        with PILImage.open(logo_path) as image:
+            normalized = image.convert("RGBA")
+            buffer = BytesIO()
+            normalized.save(buffer, format="PNG")
+        buffer.seek(0)
+        return ImageReader(buffer)
+    except Exception:
+        return None
+
+
+def _draw_header_footer(canvas, document, company, logo_reader=None):
     width, height = A4
     canvas.saveState()
-    canvas.setFillColor(colors.HexColor("#0F4C81"))
-    canvas.roundRect(18 * mm, height - 42 * mm, 16 * mm, 16 * mm, 3 * mm, fill=1, stroke=0)
-    canvas.setFillColor(colors.white)
-    canvas.setFont("Helvetica-Bold", 15)
-    canvas.drawCentredString(26 * mm, height - 36.5 * mm, "SI")
+    logo_box = 16 * mm
+    logo_x = 18 * mm
+    logo_y = height - 42 * mm
+    if logo_reader is not None:
+        canvas.drawImage(
+            logo_reader,
+            logo_x,
+            logo_y,
+            width=logo_box,
+            height=logo_box,
+            mask="auto",
+            preserveAspectRatio=True,
+            anchor="c",
+        )
+    else:
+        canvas.setFillColor(colors.HexColor("#0F4C81"))
+        canvas.roundRect(logo_x, logo_y, logo_box, logo_box, 3 * mm, fill=1, stroke=0)
+        canvas.setFillColor(colors.white)
+        canvas.setFont("Helvetica-Bold", 15)
+        canvas.drawCentredString(26 * mm, height - 36.5 * mm, "SI")
     canvas.setFillColor(colors.HexColor("#0F172A"))
     canvas.setFont("Helvetica-Bold", 16)
     canvas.drawString(40 * mm, height - 31 * mm, company["name"])

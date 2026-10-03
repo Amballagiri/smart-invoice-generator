@@ -22,6 +22,7 @@ from app.models.product import Product
 from app.models.invoice import generate_invoice_number
 from app.services.inventory_service import reduce_stock
 from app.services.invoice_service import get_company_config
+from app.services.payment_service import PaymentService
 from app.services.pdf_service import generate_invoice_pdf
 from app.services.email_service import send_invoice_email
 from urllib.parse import quote
@@ -43,6 +44,27 @@ def _owned_invoice_or_404(invoice_id):
         abort(404)
 
     return invoice
+
+
+def _invoice_defaults():
+    """Return the signed-in user's saved invoice preferences."""
+    profile = current_user.shop_profile
+    if profile is None:
+        return {
+            "invoice_prefix": "INV",
+            "default_gst": Decimal("18.00"),
+            "currency": "INR",
+            "payment_terms": "Due on Receipt",
+            "footer_note": "Thank you for your business.",
+        }
+
+    return {
+        "invoice_prefix": profile.invoice_prefix,
+        "default_gst": profile.default_gst,
+        "currency": profile.currency,
+        "payment_terms": profile.payment_terms,
+        "footer_note": profile.footer_note or "",
+    }
 
 
 @invoices_bp.get("/")
@@ -88,22 +110,25 @@ def list_invoices():
 @invoices_bp.route("/new", methods=["GET", "POST"])
 @login_required
 def create_invoice():
-
+    defaults = _invoice_defaults()
     form = InvoiceForm(
          user_id=current_user.id,
          invoice_date=date.today(),
          status="Draft",
     )
-    form.currency.data = "INR"
-    form.terms.data = "30 Days"
-    form.notes.data = "Thank you for your business."
+    if request.method == "GET":
+        form.currency.data = defaults["currency"]
+        form.terms.data = defaults["payment_terms"]
+        form.notes.data = defaults["footer_note"]
+        for item in form.items:
+            item.form.tax_percentage.data = defaults["default_gst"]
 
     if form.validate_on_submit():
 
         invoice = Invoice(
             created_by_id=current_user.id
         )
-        invoice.invoice_number = generate_invoice_number("INV")
+        invoice.invoice_number = generate_invoice_number(defaults["invoice_prefix"])
 
         _populate_invoice(invoice, form)
         _replace_items(invoice, form)
@@ -149,7 +174,11 @@ def create_invoice():
 @invoices_bp.route("/quick", methods=["GET", "POST"])
 @login_required
 def quick_invoice():
+    defaults = _invoice_defaults()
     form = QuickInvoiceForm(user_id=current_user.id, invoice_date=date.today(), status="Unpaid")
+    if request.method == "GET":
+        for item in form.items:
+            item.form.tax_percentage.data = defaults["default_gst"]
 
     if form.validate_on_submit():
         customer = _find_or_create_customer(
@@ -159,13 +188,13 @@ def quick_invoice():
         )
 
         invoice = Invoice(created_by_id=current_user.id)
-        invoice.invoice_number = generate_invoice_number("INV")
+        invoice.invoice_number = generate_invoice_number(defaults["invoice_prefix"])
         invoice.invoice_date = form.invoice_date.data
         invoice.status = form.status.data
         invoice.discount = form.discount.data or Decimal("0.00")
-        invoice.currency = "INR"
-        invoice.terms = "30 Days"
-        invoice.notes = "Thank you for your business."
+        invoice.currency = defaults["currency"]
+        invoice.terms = defaults["payment_terms"]
+        invoice.notes = defaults["footer_note"]
 
         _replace_quick_items(invoice, form)
 
@@ -238,6 +267,7 @@ def invoice_detail(invoice_id):
     return render_template(
         "invoices/detail.html",
         invoice=invoice,
+        payment_token=PaymentService.create_payment_token(invoice),
     )
 
 

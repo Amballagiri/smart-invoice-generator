@@ -1,12 +1,35 @@
 __pycache__/
 *.py[cod]
+*.log
+
+# Environment / secrets
 .env
+.env.local
+.env.production
+.env.*
+!.env.example
+
+# Virtual environments
 .venv/
 venv/
+
+# Database and backups
 instance/*.db
+instance/*.db.*
+instance/*.backup*
+instance/*.sqlite
+instance/*.sqlite3
 app/static/uploads/*
 !app/static/uploads/.gitkeep
+
+# Test / temporary artifacts
 .pytest_cache/
+.pytest-temp/
+.pytest-temp*/
 .pytest-tmp/
+tmp_*.py
 .coverage
 htmlcov/
+
+# Generated PDFs (invoices are streamed, never source)
+*.pdf

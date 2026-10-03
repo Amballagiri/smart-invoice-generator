@@ -30,9 +30,11 @@ class Config:
     MAX_CONTENT_LENGTH = 2 * 1024 * 1024
     AI_PROVIDER = os.environ.get("AI_PROVIDER", "openai").strip().lower()
     OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-    OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-5")
+    OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
     OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
-    OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "openrouter/free")
+    # Keep this to a currently available OpenRouter free model. The older
+    # Gemini 2.0 experimental route has been retired by the provider.
+    OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "inclusionai/ling-3.0-flash-sante:free")
 
     # ---------------- GOOGLE OAUTH ----------------
 
@@ -59,6 +61,22 @@ class Config:
     COMPANY_EMAIL = os.environ.get("COMPANY_EMAIL")
 
     COMPANY_PHONE = os.environ.get("COMPANY_PHONE")
+
+    # ---------------- PAYMENTS ----------------
+
+    # Which payment provider to use. Defaults to the secure local mock so no
+    # network calls are made until a real provider is explicitly enabled.
+    PAYMENT_PROVIDER = os.environ.get("PAYMENT_PROVIDER", "mock").strip().lower()
+
+    # Base URL of this application, used to build provider callbacks and
+    # payment links. Reused by the payment layer.
+    BASE_URL = os.environ.get("BASE_URL")
+
+    # Razorpay credentials are read from the environment only. Never hardcode
+    # them and never expose the key secret or webhook secret to templates.
+    RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID")
+    RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET")
+    RAZORPAY_WEBHOOK_SECRET = os.environ.get("RAZORPAY_WEBHOOK_SECRET")
 
     # ---------------- MAIL ----------------
 

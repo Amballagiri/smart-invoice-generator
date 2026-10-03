@@ -2,7 +2,7 @@
 
 import json
 import re
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 from uuid import uuid4
 
@@ -28,9 +28,29 @@ class InvoiceAssistant:
     MAX_TOOL_ROUNDS = 5
     MAX_HISTORY_ITEMS = 8
     MAX_QUESTION_LENGTH = 2_000
+    # India does not observe daylight saving time, so a fixed offset avoids a
+    # dependency on the optional system time-zone database on Windows.
+    BUSINESS_TIMEZONE = timezone(timedelta(hours=5, minutes=30))
 
     def __init__(self, user):
         self.user = user
+
+    @classmethod
+    def clear_previous_days(cls, user_id):
+        """Remove a user's assistant history when they return on a new day."""
+        local_now = datetime.now(cls.BUSINESS_TIMEZONE)
+        start_of_today = datetime(
+            local_now.year, local_now.month, local_now.day, tzinfo=cls.BUSINESS_TIMEZONE
+        ).astimezone(timezone.utc)
+        # SQLite stores DateTime values without an offset, while PostgreSQL
+        # handles the UTC-aware value correctly. A UTC-naive cutoff compares
+        # consistently with the model's stored timestamps in both setups.
+        storage_cutoff = start_of_today.replace(tzinfo=None)
+        AIConversation.query.filter(
+            AIConversation.user_id == user_id,
+            AIConversation.created_at < storage_cutoff,
+        ).delete(synchronize_session=False)
+        db.session.commit()
 
     def answer(self, question):
         question = (question or "").strip()
@@ -38,17 +58,22 @@ class InvoiceAssistant:
             raise AssistantError("Please enter a message.")
         if len(question) > self.MAX_QUESTION_LENGTH:
             raise AssistantError("Please keep your message under 2,000 characters.")
+        self.clear_previous_days(self.user.id)
         provider = current_app.config.get("AI_PROVIDER", "openai")
         if provider == "openrouter":
             api_key = current_app.config.get("OPENROUTER_API_KEY")
-            model = current_app.config.get("OPENROUTER_MODEL")
+            model = current_app.config.get("OPENROUTER_MODEL") or "meta-llama/llama-3.3-70b-instruct:free"
             client_options = {
                 "api_key": api_key,
                 "base_url": "https://openrouter.ai/api/v1",
+                "default_headers": {
+                    "HTTP-Referer": "http://localhost:5000",
+                    "X-Title": "Smart Invoice Generator",
+                },
             }
         elif provider == "openai":
             api_key = current_app.config.get("OPENAI_API_KEY")
-            model = current_app.config.get("OPENAI_MODEL")
+            model = current_app.config.get("OPENAI_MODEL") or "gpt-4o-mini"
             client_options = {"api_key": api_key}
         else:
             raise AssistantError("The AI assistant provider is not configured correctly.")
@@ -57,6 +82,7 @@ class InvoiceAssistant:
             raise AssistantError("The AI assistant is not configured. Add the selected provider's API key to your environment and restart the app.")
 
         try:
+            import openai
             from openai import OpenAI
         except ImportError as exc:
             raise AssistantError("The OpenAI package is not installed. Install project dependencies and try again.") from exc
@@ -66,23 +92,61 @@ class InvoiceAssistant:
 
         try:
             for _ in range(self.MAX_TOOL_ROUNDS):
-                response = client.responses.create(
-                    model=model,
-                    instructions=self._instructions(),
-                    input=inputs,
-                    tools=self._tools(),
-                )
-                calls = [item for item in response.output if item.type == "function_call"]
-                if not calls:
-                    answer = (response.output_text or "I couldn't prepare a response.").strip()
+                try:
+                    response = client.chat.completions.create(
+                        model=model,
+                        messages=inputs,
+                        tools=self._tools(),
+                        timeout=30,  # 30 second timeout
+                        max_tokens=1000,  # Limit response length for speed
+                    )
+                except openai.BadRequestError as bad_req:
+                    # If tools are not supported by the model, fall back to calling without tools
+                    err_text = str(bad_req).lower()
+                    if "tool" in err_text or "function" in err_text or "not supported" in err_text:
+                        response = client.chat.completions.create(
+                            model=model,
+                            messages=inputs,
+                            timeout=30,
+                            max_tokens=1000,
+                        )
+                    else:
+                        raise
+
+                if not response.choices:
+                    raise AssistantError("No response received from the AI service.")
+
+                message = response.choices[0].message
+                tool_calls = getattr(message, "tool_calls", None)
+
+                if not tool_calls:
+                    answer = (message.content or "I couldn't prepare a response.").strip()
                     self._save_conversation(question, answer)
                     return answer
 
-                inputs.extend(response.output)
-                for call in calls:
+                assistant_msg = {
+                    "role": "assistant",
+                    "content": message.content or None,
+                }
+                if tool_calls:
+                    assistant_msg["tool_calls"] = [
+                        {
+                            "id": tc.id,
+                            "type": "function",
+                            "function": {
+                                "name": tc.function.name,
+                                "arguments": tc.function.arguments,
+                            },
+                        }
+                        for tc in tool_calls
+                    ]
+                inputs.append(assistant_msg)
+
+                for call in tool_calls:
                     try:
-                        arguments = json.loads(call.arguments)
-                        result = self._run_tool(call.name, arguments)
+                        func_args = call.function.arguments
+                        arguments = json.loads(func_args) if isinstance(func_args, str) else (func_args or {})
+                        result = self._run_tool(call.function.name, arguments)
                     except (json.JSONDecodeError, TypeError, ValueError, InvalidOperation) as exc:
                         result = {"ok": False, "error": f"Invalid tool request: {exc}"}
                     except Exception:
@@ -90,13 +154,30 @@ class InvoiceAssistant:
                         db.session.rollback()
                         result = {"ok": False, "error": "The requested business action could not be completed."}
                     inputs.append({
-                        "type": "function_call_output",
-                        "call_id": call.call_id,
-                        "output": json.dumps(result, default=str),
+                        "role": "tool",
+                        "tool_call_id": call.id,
+                        "content": json.dumps(result, default=str),
                     })
+        except AssistantError:
+            raise
+        except openai.AuthenticationError as exc:
+            current_app.logger.exception("AI authentication failed")
+            raise AssistantError("Invalid API key for the AI provider. Please check the API key in your .env file and restart the server.") from exc
+        except openai.RateLimitError as exc:
+            current_app.logger.exception("AI rate limit exceeded")
+            raise AssistantError("The AI service rate limit was exceeded. The free model may be busy right now—please try again in a moment or change the model in .env.") from exc
+        except openai.BadRequestError as exc:
+            current_app.logger.exception("AI bad request")
+            raise AssistantError(f"AI provider request error: {exc.message}") from exc
+        except openai.APIConnectionError as exc:
+            current_app.logger.exception("AI connection failed")
+            raise AssistantError("Could not connect to the AI service. Please check your internet connection.") from exc
+        except openai.APIStatusError as exc:
+            current_app.logger.exception("AI status error")
+            raise AssistantError(f"AI provider returned an error ({exc.status_code}): {exc.message}") from exc
         except Exception as exc:
             current_app.logger.exception("AI provider request failed")
-            raise AssistantError("I couldn't reach the AI service right now. Please try again shortly.") from exc
+            raise AssistantError(f"AI service error: {exc}") from exc
 
         raise AssistantError("The request needed too many steps. Please try a more specific message.")
 
@@ -107,7 +188,7 @@ class InvoiceAssistant:
             .limit(self.MAX_HISTORY_ITEMS)
             .all()
         )
-        inputs = []
+        inputs = [{"role": "system", "content": self._instructions()}]
         for item in reversed(history):
             inputs.extend((
                 {"role": "user", "content": item.question},
@@ -127,11 +208,98 @@ Use Indian rupees (₹) when discussing money. Mention the invoice link returned
     @staticmethod
     def _tools():
         return [
-            {"type": "function", "name": "get_business_snapshot", "description": "Get counts, month-to-date revenue, top customer, and low-stock products for the signed-in user.", "parameters": {"type": "object", "properties": {}, "additionalProperties": False}},
-            {"type": "function", "name": "list_invoices", "description": "List the signed-in user's invoices, optionally filtered by status or creation date.", "parameters": {"type": "object", "properties": {"status": {"type": "string", "enum": ["Draft", "Paid", "Unpaid", "Cancelled"]}, "created_today": {"type": "boolean"}, "limit": {"type": "integer", "minimum": 1, "maximum": 25}}, "additionalProperties": False}},
-            {"type": "function", "name": "create_customer", "description": "Create a customer for the signed-in user.", "parameters": {"type": "object", "properties": {"name": {"type": "string"}, "email": {"type": "string"}, "phone": {"type": "string"}, "address": {"type": "string"}}, "required": ["name"], "additionalProperties": False}},
-            {"type": "function", "name": "create_product", "description": "Create a product for the signed-in user.", "parameters": {"type": "object", "properties": {"name": {"type": "string"}, "selling_price": {"type": "number", "minimum": 0}, "tax_percentage": {"type": "number", "minimum": 0, "maximum": 100}, "current_stock": {"type": "integer", "minimum": 0}, "sku": {"type": "string"}}, "required": ["name", "selling_price"], "additionalProperties": False}},
-            {"type": "function", "name": "create_invoice", "description": "Create an invoice, creating its customer or missing products only when their details are included. Items require a name, quantity, unit_price and tax_percentage.", "parameters": {"type": "object", "properties": {"customer_name": {"type": "string"}, "status": {"type": "string", "enum": ["Draft", "Unpaid", "Paid"]}, "items": {"type": "array", "minItems": 1, "items": {"type": "object", "properties": {"name": {"type": "string"}, "quantity": {"type": "number", "exclusiveMinimum": 0}, "unit_price": {"type": "number", "minimum": 0}, "tax_percentage": {"type": "number", "minimum": 0, "maximum": 100}}, "required": ["name", "quantity", "unit_price", "tax_percentage"], "additionalProperties": False}}}, "required": ["customer_name", "items"], "additionalProperties": False}},
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_business_snapshot",
+                    "description": "Get counts, month-to-date revenue, top customer, and low-stock products for the signed-in user.",
+                    "parameters": {"type": "object", "properties": {}, "additionalProperties": False},
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "list_invoices",
+                    "description": "List the signed-in user's invoices, optionally filtered by status or creation date.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "status": {"type": "string", "enum": ["Draft", "Paid", "Unpaid", "Cancelled"]},
+                            "created_today": {"type": "boolean"},
+                            "limit": {"type": "integer", "minimum": 1, "maximum": 25},
+                        },
+                        "additionalProperties": False,
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "create_customer",
+                    "description": "Create a customer for the signed-in user.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string"},
+                            "email": {"type": "string"},
+                            "phone": {"type": "string"},
+                            "address": {"type": "string"},
+                        },
+                        "required": ["name"],
+                        "additionalProperties": False,
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "create_product",
+                    "description": "Create a product for the signed-in user.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string"},
+                            "selling_price": {"type": "number", "minimum": 0},
+                            "tax_percentage": {"type": "number", "minimum": 0, "maximum": 100},
+                            "current_stock": {"type": "integer", "minimum": 0},
+                            "sku": {"type": "string"},
+                        },
+                        "required": ["name", "selling_price"],
+                        "additionalProperties": False,
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "create_invoice",
+                    "description": "Create an invoice, creating its customer or missing products only when their details are included. Items require a name, quantity, unit_price and tax_percentage.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "customer_name": {"type": "string"},
+                            "status": {"type": "string", "enum": ["Draft", "Unpaid", "Paid"]},
+                            "items": {
+                                "type": "array",
+                                "minItems": 1,
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {"type": "string"},
+                                        "quantity": {"type": "number", "exclusiveMinimum": 0},
+                                        "unit_price": {"type": "number", "minimum": 0},
+                                        "tax_percentage": {"type": "number", "minimum": 0, "maximum": 100},
+                                    },
+                                    "required": ["name", "quantity", "unit_price", "tax_percentage"],
+                                    "additionalProperties": False,
+                                },
+                            },
+                        },
+                        "required": ["customer_name", "items"],
+                        "additionalProperties": False,
+                    },
+                },
+            },
         ]
 
     def _run_tool(self, name, arguments):

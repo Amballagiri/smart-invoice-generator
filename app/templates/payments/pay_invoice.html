@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+
+{% block title %}
+Pay Invoice {{ invoice.invoice_number }} · Smart Invoice Generator
+{% endblock %}
+
+{% block head %}
+<style>
+  .payment-page {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+  }
+
+  .payment-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  .payment-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .payment-amount {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+  }
+
+  .payment-content {
+    padding: 2rem;
+  }
+
+  .test-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #f0c36d;
+    background: #fff8e6;
+    color: #7a5b00;
+    border-radius: 8px;
+    font-size: 0.9rem;
+  }
+
+  .secure-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #bfe3c8;
+    background: #eefaf1;
+    color: #146c43;
+    border-radius: 8px;
+    font-size: 0.9rem;
+  }
+
+  .qr-section {
+    text-align: center;
+    padding: 2rem;
+    background: #f9fafb;
+    border-radius: 8px;
+    margin: 1rem 0;
+  }
+
+  .qr-code {
+    max-width: 200px;
+    margin: 1rem auto;
+    border: 4px solid white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .upi-apps {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+
+  .upi-app {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    text-decoration: none;
+    color: #374151;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .upi-app:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  .pay-button {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .pay-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+
+  .invoice-details {
+    background: #f9fafb;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 0.5rem 0;
+  }
+
+  .detail-row.total {
+    font-weight: bold;
+    font-size: 1.1rem;
+    border-top: 2px solid #e5e7eb;
+    padding-top: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .payment-page {
+      margin: 1rem;
+      padding: 1rem;
+    }
+
+    .payment-header {
+      padding: 1.5rem;
+    }
+
+    .payment-amount {
+      font-size: 2rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="payment-page">
+  <div class="payment-card">
+    <div class="payment-header">
+      <h1>Pay Invoice</h1>
+      <div class="payment-amount">₹{{ "%.2f"|format(invoice.grand_total) }}</div>
+      <p>{{ invoice.invoice_number }}</p>
+    </div>
+
+    <div class="payment-content">
+      <!-- Invoice Details (minimal, non-sensitive) -->
+      <div class="invoice-details">
+        <h5>Invoice Details</h5>
+        <div class="detail-row">
+          <span>Invoice Number:</span>
+          <strong>{{ invoice.invoice_number }}</strong>
+        </div>
+        <div class="detail-row">
+          <span>Date:</span>
+          <span>{{ invoice.invoice_date.strftime('%d %b %Y') }}</span>
+        </div>
+        {% if invoice.due_date %}
+        <div class="detail-row">
+          <span>Due Date:</span>
+          <span>{{ invoice.due_date.strftime('%d %b %Y') }}</span>
+        </div>
+        {% endif %}
+        <div class="detail-row total">
+          <span>Total Amount:</span>
+          <span>₹{{ "%.2f"|format(invoice.grand_total) }}</span>
+        </div>
+      </div>
+
+      {% if provider == 'razorpay' %}
+      <!-- Razorpay Checkout (UPI incl. QR, card, netbanking, wallets) -->
+      <div class="secure-banner">
+        <i class="bi bi-shield-lock"></i>
+        <span>Secure payment powered by Razorpay. Your card details never touch this site.</span>
+      </div>
+
+      <button type="button" class="pay-button" id="rzpPayButton" onclick="startRazorpay()">
+        <i class="bi bi-credit-card"></i> Pay ₹{{ "%.2f"|format(invoice.grand_total) }} with UPI / Card
+      </button>
+      <p class="text-muted text-center mt-2 mb-0">
+        Choose UPI (scan the QR shown by Razorpay), card, netbanking or wallet on the next screen.
+      </p>
+      {% else %}
+      <div class="test-banner">
+        <i class="bi bi-exclamation-triangle"></i>
+        <span><strong>TEST MODE.</strong> No real payment is processed. This page is a secure demo of the payment experience.</span>
+      </div>
+
+      <!-- Mock UPI QR -->
+      {% if qr_data %}
+      <div class="qr-section">
+        <h5><i class="bi bi-qr-code"></i> Scan to Pay (Mock UPI)</h5>
+        <img src="{{ qr_data.qr_code_data }}" alt="UPI QR Code" class="qr-code">
+        <p class="text-muted">This QR is generated for demonstration only and does not transfer funds.</p>
+
+        <div class="upi-apps">
+          <a class="upi-app" role="button" onclick="openUPIApp('gpay')"><i class="bi bi-google"></i> GPay</a>
+          <a class="upi-app" role="button" onclick="openUPIApp('phonepe')"><i class="bi bi-phone"></i> PhonePe</a>
+          <a class="upi-app" role="button" onclick="openUPIApp('paytm')"><i class="bi bi-wallet2"></i> Paytm</a>
+          <a class="upi-app" role="button" onclick="openUPIApp('bhim')"><i class="bi bi-bank"></i> BHIM</a>
+        </div>
+      </div>
+      {% else %}
+      <p class="text-muted">QR code generation is currently unavailable.</p>
+      {% endif %}
+
+      <div class="alert alert-info mt-3 mb-0">
+        <i class="bi bi-info-circle"></i>
+        After payment is received, the business owner confirms it from their invoice page.
+      </div>
+      {% endif %}
+
+      <!-- Read-only status check -->
+      <div class="text-center mt-4">
+        <p class="text-muted">
+          <i class="bi bi-shield-check"></i> Secure payment powered by Smart Invoice Generator
+        </p>
+        <button type="button" class="btn btn-outline-secondary" onclick="checkPaymentStatus()">
+          <i class="bi bi-arrow-clockwise"></i> Check Payment Status
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if provider == 'razorpay' %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+{% endif %}
+<script>
+const csrfToken = "{{ csrf_token() }}";
+
+function checkPaymentStatus() {
+  fetch('/payments/status/{{ token }}')
+    .then(response => response.json())
+    .then(data => {
+      if (data.payment_status === 'Paid') {
+        window.location.href = '/payments/success/{{ token }}';
+      } else {
+        alert('Payment Status: ' + data.payment_status + '\nInvoice Status: ' + data.status);
+      }
+    })
+    .catch(() => alert('Unable to check payment status. Please try again.'));
+}
+
+{% if provider == 'razorpay' %}
+async function startRazorpay() {
+  const button = document.getElementById('rzpPayButton');
+  button.disabled = true;
+  try {
+    const response = await fetch('/payments/pay/{{ token }}/order', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrfToken },
+      credentials: 'same-origin'
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      alert(data.error || 'Unable to start payment. Please try again.');
+      button.disabled = false;
+      return;
+    }
+    const options = {
+      key: data.key_id,
+      amount: data.amount,
+      currency: data.currency,
+      name: data.name,
+      description: 'Invoice ' + data.invoice_number,
+      order_id: data.order_id,
+      theme: { color: '#6652d7' },
+      handler: async function (checkoutResponse) {
+        try {
+          const verify = await fetch('/payments/verify/{{ token }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            credentials: 'same-origin',
+            body: JSON.stringify(checkoutResponse)
+          });
+          const verified = await verify.json();
+          if (verified.success) {
+            window.location.href = '/payments/success/{{ token }}';
+          } else {
+            alert('Payment could not be verified. If money was deducted, it will be reconciled automatically.');
+            button.disabled = false;
+          }
+        } catch (error) {
+          alert('Payment verification failed. Please check the invoice status shortly.');
+          button.disabled = false;
+        }
+      },
+      modal: {
+        ondismiss: function () { button.disabled = false; }
+      }
+    };
+    const rzp = new Razorpay(options);
+    rzp.open();
+  } catch (error) {
+    alert('Unable to start payment. Please try again.');
+    button.disabled = false;
+  }
+}
+{% else %}
+const upiLinks = {{ (upi_links or {})|tojson }};
+
+function openUPIApp(appName) {
+  const url = upiLinks[appName];
+  if (url) {
+    window.location.href = url;
+  }
+}
+{% endif %}
+</script>
+{% endblock %}

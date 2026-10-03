@@ -17,6 +17,10 @@ class Invoice(db.Model):
             "status IN ('Draft', 'Paid', 'Unpaid', 'Cancelled')",
             name="ck_invoices_status",
         ),
+        db.CheckConstraint(
+            "payment_status IN ('Pending', 'Paid', 'Failed', 'Refunded')",
+            name="ck_invoices_payment_status",
+        ),
     )
 
     id = db.Column(db.Integer, primary_key=True)
@@ -46,6 +50,15 @@ class Invoice(db.Model):
     terms = db.Column(db.Text, nullable=True)
     currency = db.Column(db.String(3), nullable=False, default="INR")
     payment_method = db.Column(db.String(50), nullable=True)
+    payment_status = db.Column(db.String(20), nullable=False, default="Pending")
+    payment_gateway = db.Column(db.String(50), nullable=True)  # upi, razorpay, etc.
+    payment_transaction_id = db.Column(db.String(100), nullable=True)
+    payment_date = db.Column(db.DateTime(timezone=True), nullable=True)
+    upi_id = db.Column(db.String(100), nullable=True)  # for UPI payments
+    payment_link = db.Column(db.String(200), nullable=True)  # Payment gateway link
+    payment_order_id = db.Column(db.String(100), nullable=True, index=True)  # provider order id
+    payment_provider_status = db.Column(db.String(30), nullable=True)  # provider-side status
+    amount_paid = db.Column(db.Numeric(12, 2), nullable=True)  # captured amount
     template_name = db.Column(db.String(30), nullable=False, default="Modern Blue")
     round_off = db.Column(db.Numeric(12, 2), nullable=False, default=Decimal("0.00"))
     discount = db.Column(db.Numeric(12, 2), nullable=False, default=Decimal("0.00"))

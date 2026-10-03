@@ -1,0 +1,255 @@
+/* ============================================================================
+   Smart Invoice — centralized BUSINESS BLUE / BLUE SLATE theme layer
+   Loaded last (after dark.css) so it reliably overrides hardcoded light
+   colors and the purple brand accents. Every rule is scoped under
+   [data-bs-theme="business"] so LIGHT and DARK modes are never affected.
+   ============================================================================ */
+
+/* --- Design tokens --------------------------------------------------------- */
+[data-bs-theme="business"]{
+    /* Core app palette */
+    --bg:#eef2f7;
+    --surface:#ffffff;
+    --surface-soft:#f5f8fc;
+    --surface-2:#e8eef7;
+    --ink:#0f172a;
+    --muted:#5b6b82;
+    --text:#0f172a;
+    --text-muted:#5b6b82;
+    --line:#dde5ef;
+    --border:#dde5ef;
+    --border-color:#dbe3ee;
+    --input-bg:#ffffff;
+    --input-text:#0f172a;
+
+    /* Professional blue brand */
+    --primary:#2563eb;
+    --primary-dark:#1d4ed8;
+    --brand:#2563eb;
+    --brand-2:#3b82f6;
+    --blue:#2563eb;
+
+    /* Semantic */
+    --success:#0f9d6b;
+    --warning:#c9821a;
+    --danger:#dc3545;
+    --shadow:0 12px 32px rgba(15,32,68,.08);
+    --soft-shadow:0 14px 45px rgba(15,32,68,.08);
+
+    /* Bootstrap token mapping */
+    --bs-body-bg:var(--bg);
+    --bs-body-color:var(--ink);
+    --bs-border-color:var(--border);
+    --bs-emphasis-color:var(--ink);
+    --bs-secondary-color:var(--muted);
+    --bs-tertiary-bg:var(--surface-2);
+    --bs-primary:#2563eb;
+    --bs-primary-rgb:37,99,235;
+    --bs-link-color:#2563eb;
+    --bs-link-hover-color:#1d4ed8;
+
+    /* Page-local tokens (Customers CRM) */
+    --crm-surface:#ffffff;
+    --crm-surface-soft:#f4f7fc;
+    --crm-shadow:0 24px 48px rgba(15,32,68,.08);
+    --crm-border:#e0e7f0;
+    --crm-muted:#64748b;
+    --crm-soft:#eaf1fb;
+
+    --form-select-bg-img:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%235b6b82' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+/* --- Global layout / navigation ------------------------------------------- */
+[data-bs-theme="business"] .app-sidebar{
+    background:linear-gradient(160deg,#0f1e3d,#15294d 58%,#1e3a6b);
+    box-shadow:10px 0 35px rgba(9,17,38,.14);
+}
+[data-bs-theme="business"] .app-brand{color:#fff;}
+[data-bs-theme="business"] .brand-symbol{
+    color:#1d4ed8;
+    background:linear-gradient(135deg,#ffffff,#dbeafe);
+}
+[data-bs-theme="business"] .sidebar-caption{color:#8ea3c4;}
+[data-bs-theme="business"] .sidebar-nav a{color:#c3cfe2;}
+[data-bs-theme="business"] .sidebar-nav a:hover,
+[data-bs-theme="business"] .sidebar-nav a.active{
+    color:#fff;
+    background:rgba(59,130,246,.3);
+}
+[data-bs-theme="business"] .app-topbar{background:rgba(255,255,255,.82);}
+[data-bs-theme="business"] .theme-button:hover,
+[data-bs-theme="business"] .notification-button:hover{color:var(--primary);background:var(--surface-soft);}
+
+/* --- Buttons --------------------------------------------------------------- */
+[data-bs-theme="business"] .btn-primary{
+    border-color:var(--primary);
+    background:var(--primary);
+    box-shadow:0 6px 16px rgba(37,99,235,.22);
+}
+[data-bs-theme="business"] .btn-primary:hover,
+[data-bs-theme="business"] .btn-primary:focus{
+    border-color:var(--primary-dark);
+    background:var(--primary-dark);
+}
+[data-bs-theme="business"] .btn-outline-primary{color:var(--primary);border-color:#bfdbfe;}
+[data-bs-theme="business"] .btn-outline-primary:hover,
+[data-bs-theme="business"] .btn-outline-primary:focus{color:#fff;background:var(--primary);border-color:var(--primary);}
+
+/* --- Forms ----------------------------------------------------------------- */
+[data-bs-theme="business"] .form-control,
+[data-bs-theme="business"] .form-select{
+    color:var(--input-text);
+    background-color:var(--input-bg);
+    border-color:var(--border);
+}
+[data-bs-theme="business"] .form-control::placeholder{color:var(--text-muted);opacity:.85;}
+[data-bs-theme="business"] .input-group-text{color:var(--text);background:var(--surface-soft);border-color:var(--border);}
+[data-bs-theme="business"] .form-control:focus,
+[data-bs-theme="business"] .form-select:focus{
+    border-color:#93b4f5;
+    background-color:var(--surface);
+    box-shadow:0 0 0 4px rgba(37,99,235,.12);
+}
+[data-bs-theme="business"] .form-label{color:var(--ink);}
+
+/* --- Bootstrap components -------------------------------------------------- */
+[data-bs-theme="business"] .dropdown-menu{background:var(--surface);border-color:var(--border);color:var(--text);}
+[data-bs-theme="business"] .dropdown-item{color:var(--text);}
+[data-bs-theme="business"] .dropdown-item:hover,
+[data-bs-theme="business"] .dropdown-item:focus{color:var(--text);background:var(--surface-soft);}
+[data-bs-theme="business"] .dropdown-divider{border-color:var(--border);}
+[data-bs-theme="business"] .modal-content{background:var(--surface);color:var(--text);border-color:var(--border);}
+[data-bs-theme="business"] .modal-header,
+[data-bs-theme="business"] .modal-footer{border-color:var(--border);}
+[data-bs-theme="business"] .modal-title{color:var(--text);}
+[data-bs-theme="business"] .accordion-button{color:var(--text);background:var(--surface);}
+[data-bs-theme="business"] .accordion-button:not(.collapsed){color:var(--primary);background:var(--surface-soft);}
+[data-bs-theme="business"] .accordion-item{background:var(--surface);border-color:var(--border);}
+[data-bs-theme="business"] .list-group-item{color:var(--text);background:var(--surface);border-color:var(--border);}
+[data-bs-theme="business"] .list-group-item:hover{background:var(--surface-soft);}
+[data-bs-theme="business"] .text-secondary{color:var(--text-muted)!important;}
+[data-bs-theme="business"] .bg-white{background-color:var(--surface)!important;}
+[data-bs-theme="business"] .bg-light{background-color:var(--surface-soft)!important;}
+[data-bs-theme="business"] .table-light{--bs-table-bg:var(--surface-soft);--bs-table-color:var(--text);}
+
+/* --- Status badges --------------------------------------------------------- */
+[data-bs-theme="business"] .status-badge{color:var(--primary);}
+[data-bs-theme="business"] .status-active{color:var(--success);}
+
+/* --- Dashboard ------------------------------------------------------------- */
+[data-bs-theme="business"] .dashboard-hero{
+    background:
+        radial-gradient(circle at 82% 25%,rgba(96,165,250,.34),transparent 22%),
+        radial-gradient(circle at 67% 130%,rgba(30,58,107,.4),transparent 40%),
+        linear-gradient(120deg,#0f1e3d 0%,#1d3f7a 55%,#2563eb 100%);
+    box-shadow:0 22px 42px rgba(15,40,90,.22);
+}
+[data-bs-theme="business"] .hero-kicker{color:#c7dbfb;}
+[data-bs-theme="business"] .hero-kicker i{color:#93c5fd;}
+[data-bs-theme="business"] .hero-actions .btn{color:#1d4ed8;box-shadow:0 8px 20px rgba(9,17,38,.22);}
+[data-bs-theme="business"] .hero-orb{color:#2563eb;background:linear-gradient(135deg,#fff,#dbeafe);}
+[data-bs-theme="business"] .glass-card{background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(240,246,255,.78));}
+[data-bs-theme="business"] .kpi-icon{color:var(--primary);background:#e7efff;}
+[data-bs-theme="business"] .kpi-icon.success{color:var(--success);background:#dff5ec;}
+[data-bs-theme="business"] .kpi-icon.warning{color:var(--warning);background:#fbf0db;}
+[data-bs-theme="business"] .activity-dot{color:var(--primary);background:#eaf1fb;}
+[data-bs-theme="business"] .empty-state i{color:var(--primary);background:#eaf1fb;}
+[data-bs-theme="business"] .mini-sparkline i{background:linear-gradient(#60a5fa,#2563eb);}
+
+/* --- Customers ------------------------------------------------------------- */
+[data-bs-theme="business"] .customer-card{background:var(--crm-surface);}
+[data-bs-theme="business"] .customer-avatar{background:linear-gradient(135deg,#e7efff,#f4f7fc);box-shadow:0 10px 24px rgba(15,32,68,.1);color:var(--primary);}
+[data-bs-theme="business"] .btn-icon{background:var(--surface);border-color:#cfe0fb;}
+[data-bs-theme="business"] .stat-card{background:linear-gradient(180deg,rgba(255,255,255,.98),#f2f7ff);}
+[data-bs-theme="business"] .crm-customers-table tbody tr{border-color:var(--crm-border);}
+[data-bs-theme="business"] .pagination .page-link{color:var(--primary);border-color:#cfe0fb;}
+[data-bs-theme="business"] .pagination .page-item.active .page-link{color:#fff;background:var(--primary);border-color:var(--primary);}
+
+/* --- Products -------------------------------------------------------------- */
+[data-bs-theme="business"] .products-table tbody tr{background:var(--surface-soft);}
+
+/* --- Invoices: list / builder / detail ------------------------------------- */
+[data-bs-theme="business"] .builder-card,
+[data-bs-theme="business"] .totals-card,
+[data-bs-theme="business"] .preview-panel{
+    background:var(--surface);
+    border-color:var(--border);
+    box-shadow:0 22px 60px rgba(15,32,68,.1);
+}
+[data-bs-theme="business"] .auto-number{background:var(--surface-soft);border-color:#cfe0fb;}
+[data-bs-theme="business"] .customer-summary{background:var(--surface-soft);}
+[data-bs-theme="business"] .preview-toolbar{background:var(--surface-soft);}
+[data-bs-theme="business"] .toolbar-button{background:var(--surface);border-color:#cfe0fb;}
+[data-bs-theme="business"] .preview-frame{background:var(--surface-soft);}
+[data-bs-theme="business"] .builder-table tbody tr{border-color:#e4ebf5;}
+[data-bs-theme="business"] .builder-table tbody tr.builder-item-row{background:var(--surface-soft);}
+[data-bs-theme="business"] .invoice-hero,
+[data-bs-theme="business"] .invoice-summary-card,
+[data-bs-theme="business"] .invoice-meta-card,
+[data-bs-theme="business"] .info-card,
+[data-bs-theme="business"] .items-card,
+[data-bs-theme="business"] .notes-card,
+[data-bs-theme="business"] .payment-summary-card,
+[data-bs-theme="business"] .invoice-summary-card.aside-panel{
+    background:var(--surface);
+    border-color:var(--border);
+    box-shadow:0 20px 40px rgba(15,32,68,.08);
+}
+[data-bs-theme="business"] .invoice-items-table tbody tr{background:var(--surface-soft);border-color:var(--border);}
+[data-bs-theme="business"] .quick-table tbody tr.quick-item{background:var(--surface-soft);}
+/* A4 preview intentionally stays a white "paper" document */
+[data-bs-theme="business"] .a4-preview{background:#fff;}
+
+/* --- AI / chat ------------------------------------------------------------- */
+[data-bs-theme="business"] .chat-message-user .chat-avatar{background:#e7efff;color:var(--primary);}
+
+/* --- Profile / settings / shop setup --------------------------------------- */
+[data-bs-theme="business"] .profile-avatar-wrap,
+[data-bs-theme="business"] .edit-avatar-wrap{border-color:#cfe0fb;}
+[data-bs-theme="business"] .security-icon{color:var(--primary);background:#e7efff;}
+[data-bs-theme="business"] .settings-hero,
+[data-bs-theme="business"] .settings-card{background:linear-gradient(145deg,#ffffff,#f2f7ff);}
+[data-bs-theme="business"] .settings-icon.appearance{color:#2563eb;background:#e7efff;}
+[data-bs-theme="business"] .settings-icon.company{color:#0e7490;background:#dff4f8;}
+[data-bs-theme="business"] .settings-icon.invoice{color:#b45309;background:#fbf0db;}
+[data-bs-theme="business"] .settings-icon.alerts{color:#be123c;background:#fde8ee;}
+[data-bs-theme="business"] .settings-icon.data{color:#1d4ed8;background:#e0ebfd;}
+[data-bs-theme="business"] .settings-icon.account{color:#047857;background:#dff5ec;}
+
+/* --- Notifications --------------------------------------------------------- */
+[data-bs-theme="business"] .dropdown-header,
+[data-bs-theme="business"] .dropdown-footer{border-color:var(--border);}
+
+/* --- About page ------------------------------------------------------------ */
+[data-bs-theme="business"] .about-hero-badge{
+    background:rgba(37,99,235,.1);
+    border-color:rgba(37,99,235,.24);
+    color:var(--primary);
+}
+[data-bs-theme="business"] .about-skeleton-primary{background:linear-gradient(90deg,var(--primary),#60a5fa);}
+[data-bs-theme="business"] .about-tech-lock-badge{background:linear-gradient(135deg,#1d4ed8,#3b82f6);}
+
+/* --- Quick invoice --------------------------------------------------------- */
+[data-bs-theme="business"] .quick-icon{background:rgba(37,99,235,.12);color:var(--primary);}
+
+/* --- Auth pages (login / register / reset) --------------------------------- */
+[data-bs-theme="business"] body.login-page{background:#eef2f7;color:var(--ink);}
+[data-bs-theme="business"] .login-hero{
+    background:linear-gradient(135deg,#0f1e3d 0%,#1d3f7a 48%,#2563eb 100%);
+}
+[data-bs-theme="business"] .hero-glow-one{background:#60a5fa;}
+[data-bs-theme="business"] .hero-glow-two{background:#38bdf8;}
+[data-bs-theme="business"] .brand-mark{color:#1d4ed8;background:linear-gradient(135deg,#fff,#dbeafe);}
+[data-bs-theme="business"] .invoice-icon{color:#1d4ed8;background:#e7efff;}
+[data-bs-theme="business"] .mini-chart i{background:linear-gradient(#60a5fa,#2563eb);}
+[data-bs-theme="business"] .login-panel{background:linear-gradient(145deg,#fbfdff,#eef4fe);}
+[data-bs-theme="business"] .login-card .eyebrow{color:var(--primary);}
+[data-bs-theme="business"] .form-control:focus{border-color:#93b4f5;box-shadow:0 0 0 4px rgba(37,99,235,.12);}
+[data-bs-theme="business"] .password-toggle:hover{background:#e7efff;}
+[data-bs-theme="business"] .remember input:checked + span{border-color:var(--primary);background:var(--primary);}
+[data-bs-theme="business"] .login-submit{background:var(--primary);box-shadow:0 12px 22px rgba(37,99,235,.25);}
+[data-bs-theme="business"] .login-submit:hover{background:var(--primary-dark);box-shadow:0 16px 27px rgba(37,99,235,.32);}
+[data-bs-theme="business"] .google-button:hover{border-color:#bfdbfe;box-shadow:0 5px 15px rgba(15,32,68,.08);}
+
+/* --- Errors / alerts ------------------------------------------------------- */
+[data-bs-theme="business"] .app-alert{box-shadow:var(--shadow);}

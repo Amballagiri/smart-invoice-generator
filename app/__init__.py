@@ -62,6 +62,7 @@ def create_app(test_config=None):
     from app.routes.invoices import invoices_bp
     from app.routes.main import main_bp
     from app.routes.ai import ai_bp
+    from app.routes.payments import payment_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
@@ -69,6 +70,7 @@ def create_app(test_config=None):
     app.register_blueprint(products_bp)
     app.register_blueprint(invoices_bp)
     app.register_blueprint(ai_bp)
+    app.register_blueprint(payment_bp)
 
     with app.app_context():
         db.create_all()
